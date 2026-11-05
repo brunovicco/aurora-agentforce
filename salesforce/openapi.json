@@ -1,0 +1,256 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Aurora Orders",
+    "version": "0.1.0",
+    "description": "Operações de leitura para a demonstração Agentforce. Credencial restrita a um único cliente fictício."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "ApiKey": []
+    }
+  ],
+  "paths": {
+    "/orders/{order_id}": {
+      "get": {
+        "operationId": "getOrder",
+        "summary": "Consultar um pedido fictício autorizado.",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "description": "Número do pedido fictício, por exemplo AUR-1001.",
+            "schema": {
+              "type": "string",
+              "pattern": "^AUR-[0-9]{4}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consulta concluída.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "order_id",
+                    "product",
+                    "status"
+                  ],
+                  "properties": {
+                    "order_id": {
+                      "type": "string"
+                    },
+                    "product": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "processing",
+                        "shipped",
+                        "delivered",
+                        "cancelled"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente ou indisponível para o cliente da demo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{order_id}/return-eligibility": {
+      "get": {
+        "operationId": "checkReturnEligibility",
+        "summary": "Avaliar a política fictícia de devolução.",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "description": "Número do pedido fictício, por exemplo AUR-1001.",
+            "schema": {
+              "type": "string",
+              "pattern": "^AUR-[0-9]{4}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consulta concluída.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "order_id",
+                    "eligible",
+                    "reason_code",
+                    "reason",
+                    "policy_reference",
+                    "evaluated_on"
+                  ],
+                  "properties": {
+                    "order_id": {
+                      "type": "string"
+                    },
+                    "eligible": {
+                      "type": "boolean"
+                    },
+                    "reason_code": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "policy_reference": {
+                      "type": "string"
+                    },
+                    "evaluated_on": {
+                      "type": "string",
+                      "format": "date"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente ou indisponível para o cliente da demo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}
