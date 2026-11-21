@@ -18,7 +18,9 @@ TODAY = date(2026, 11, 5)
     ],
 )
 def test_return_window_is_inclusive(elapsed_days: int, eligible: bool, code: str) -> None:
-    order = Order("AUR-1001", "demo", "Headphones", "delivered", TODAY - timedelta(days=elapsed_days))
+    order = Order(
+        "AUR-1001", "demo", "Headphones", "delivered", TODAY - timedelta(days=elapsed_days)
+    )
     decision = evaluate_return(order, today=TODAY)
     assert decision.eligible is eligible
     assert decision.reason_code == code

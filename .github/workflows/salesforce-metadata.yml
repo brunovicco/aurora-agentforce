@@ -2,21 +2,25 @@ name: Salesforce DX metadata checks
 
 on:
   pull_request:
-    paths:
-      - 'salesforce/**'
-      - 'scripts/sf-*.sh'
-      - '.github/workflows/salesforce-metadata.yml'
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: metadata-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   metadata-static:
+    name: metadata-static
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Check Salesforce project configuration and XML files
+      - name: Check Salesforce project and XML metadata
         shell: bash
         run: |
           python3 - <<'PY'
@@ -28,13 +32,39 @@ jobs:
           assert project['sourceApiVersion'] == '68.0'
           assert project['packageDirectories'][0]['path'] == 'force-app'
           xml_files = list(Path('salesforce').rglob('*.xml'))
+          assert xml_files, 'No Salesforce metadata files found'
           for item in xml_files:
               ET.parse(item)
-          print(f'Validated DX project and {len(xml_files)} XML files.')
+          print(f'Validated Salesforce DX project and {len(xml_files)} XML files.')
           PY
-      - name: Shell script syntax
-        run: |
-          for f in scripts/sf-*.sh; do bash -n "$f"; done
 
-# This workflow is intentionally offline: it does NOT authenticate into an
-# org, deploy metadata, run agent actions, or expose Salesforce secrets.
+      - name: Validate Shell syntax
+        shell: bash
+        run: |
+          for file in scripts/sf-*.sh; do
+            bash -n "$file"
+          done
+
+      - name: Validate evaluation scenario manifest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          cases = json.loads(Path('evals/scenarios.json').read_text())['cases']
+          assert len(cases) == 12, 'Expected exactly 12 evaluation scenarios'
+          assert len({case['id'] for case in cases}) == len(cases)
+          assert all(case['utterance'] and case['acceptance'] for case in cases)
+          print(f'Validated {len(cases)} evaluation scenarios (not a runtime pass).')
+          PY
+
+      - name: Publish run summary
+        if: always()
+        run: |
+          {
+            echo '## Salesforce DX static checks'
+            echo ''
+            echo 'Validated source metadata, shell syntax, and evaluation scenario structure.'
+            echo 'This job does not deploy to Salesforce or execute Agentforce actions.'
+          } >> "$GITHUB_STEP_SUMMARY"
