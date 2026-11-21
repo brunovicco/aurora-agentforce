@@ -4,10 +4,19 @@ Um agente consulta pedidos, explica a elegibilidade para devolução e, após co
 abre um caso no Salesforce. O objetivo do portfólio é demonstrar ações úteis, integração
 segura, regras verificáveis e avaliação do agente.
 
-**Estado:** API Python e contrato de integração implementados localmente. O agente, o Flow
-e os testes de conversa ainda precisam ser configurados e executados em uma Developer Edition.
-A integração ainda não foi validada de ponta a ponta na Salesforce e a API não foi
-implantada em um serviço de hospedagem.
+**Estado em 21/11/2026 — marco parcial validado:** API Python, contrato OpenAPI,
+External Service, Agent Script, Flow `AbrirCasoPosVenda`, objetos e permission sets
+estão implementados e versionados. A integração com uma **Salesforce Developer Edition**
+foi exercitada em previews com ações reais: consulta de pedido, confirmação nativa,
+criação/recuperação de Case, proteção por aprovação e idempotência. A API foi exposta
+temporariamente via Cloudflare Quick Tunnel para testes, **não está hospedada de forma
+permanente**.
+
+**Limite importante:** este é um laboratório com dados sintéticos, **não está pronto
+para atendimento público ou produção**. A API autentica a integração por chave,
+mas ainda não autentica cada cliente final. Um preview comprovou que é possível
+consultar status e produto de `AUR-1003` sem identidade do consumidor verificada.
+A correção desse controle está pendente.
 
 ## Escopo e arquitetura
 
@@ -19,7 +28,8 @@ flowchart LR
     P --> D[Dados sintéticos + política determinística]
     A --> C[Confirmação do usuário]
     C --> F[Flow: AbrirCasoPosVenda]
-    F --> S[Case no Salesforce]
+    F --> V[Validação do pedido e aprovação vigente]
+    V --> S[Case no Salesforce: criação ou consulta]
     F --> E
 ```
 
@@ -89,7 +99,9 @@ Python roda no computador. Para uma demonstração conectada, a Salesforce preci
 URL HTTPS acessível; `localhost` não funciona como destino de callout na nuvem.
 Um [Cloudflare Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/)
 pode fornecer uma URL temporária sem conta ou domínio. A URL muda, depende do computador
-ligado e é apropriada para testes. Nenhum túnel foi aberto por este projeto.
+ligado e é apropriada para testes. **Esse túnel temporário foi usado nos testes de
+integração**, mas não faz parte de uma hospedagem permanente nem disponibiliza um
+endpoint estável para visitantes do repositório.
 
 ## Validação e roteiro de entrega
 
@@ -109,16 +121,55 @@ no PyPI. A biblioteca de testes emitiu um aviso de depreciação de `httpx`, sem
 as versões verificadas estão fixadas em `uv.lock`. Essa evidência corresponde à execução
 local; consulte o workflow no GitHub para o resultado da integração contínua.
 
-1. **Fundação local:** API, fixtures, testes e contrato OpenAPI — implementados.
-2. **Integração:** criar Developer Edition, configurar credenciais e registrar as duas ações.
-3. **Ação de negócio:** criar o Flow e ativar confirmação antes da abertura do caso.
-4. **Vitrine:** executar os [12 cenários](evals/scenarios.json), recuperar os metadados reais
-   da org e gravar uma demonstração de 3–5 minutos.
+### Entregue e verificado na Developer Edition
 
-Os cenários são um roteiro próprio, não um arquivo nativo do Testing Center. Registre
-pass/fail, ação utilizada, resultado esperado/obtido e tempo observado. Metas iniciais:
-12/12 cenários aceitos, zero exposição entre clientes, zero casos antes da confirmação
-e nenhum caso duplicado em repetição. São metas, não resultados já medidos.
+- **Fundação:** API FastAPI, dados sintéticos, política determinística de devolução,
+  isolamento do cliente de demonstração na API, testes e OpenAPI 3.0.3.
+- **Integração:** External Service `AuroraOrdersService`, Named/External Credential
+  configuradas na org e ações `Get_Order` / `Check_Return_Eligibility`.
+  As credenciais e seus valores secretos **não são versionados**.
+- **Agentforce:** bundle `Aurora_Pos_Venda_1` com confirmação nativa da ação de escrita.
+  Validação do bundle concluída com **zero erros**.
+- **Salesforce Flow:** `AbrirCasoPosVenda` valida novamente o pedido,
+  exige registro válido em `AuroraCaseApproval__c` **antes de consultar ou criar
+  Cases**, usa `Case.AuroraRequestKey__c` único para idempotência e devolve
+  `created`, `existing`, `approval_required`, `unavailable` ou `failed`.
+  A aprovação é um **registro personalizado criado fora da conversa**; não há
+  um Salesforce Approval Process formal nem um canal de aprovação automatizado.
+- **Evidências reais:** confirmação positiva e cancelamento; bloqueio sem aprovação,
+  aprovações revogadas ou expiradas; Case criado pelo usuário de execução do agente;
+  consulta posterior do mesmo Case sem duplicação; regressão que impede divulgar
+  um Case existente quando a aprovação é revogada. O retorno `approval_required`
+  foi verificado no trace com `case_number` vazio.
+- **Permissões críticas:** revisão de Permission Sets, componentes do Permission Set
+  Group e `UserRecordAccess`: leitura de `AuroraCaseApproval__c` sem criar,
+  editar ou excluir; leitura/criação de `Case` sem editar ou excluir.
+  Não foram encontradas concessões `View All Data` ou `Modify All Data`
+  nos conjuntos examinados. Isso não substitui auditoria de segurança exaustiva.
+
+### Pendente / limitações conhecidas
+
+1. **Prioridade de segurança:** autenticar o consumidor e associar identidade
+   verificada a cada pedido, ação de leitura, aprovação e Case; aplicar a
+   autorização no backend/Flow, não apenas por instrução ao LLM. Hoje a API
+   opera com `customer-demo-001` fixo e o acesso de leitura **não exige
+   autenticação do cliente final**.
+2. Implementar mecanismo confiável de verificação de identidade (por exemplo,
+   sessão autenticada ou OTP com verificação no backend). **OTP ainda não existe.**
+3. Tornar o provisionamento reprodutível em outra org, incluindo configuração
+   manual segura de credenciais, dependências e URLs; o Cloudflare Quick Tunnel
+   é temporário. Revisar os scripts de deploy/retrieve/validação e CI localmente
+   antes de versioná-los.
+4. Executar e registrar formalmente os **[12 cenários](evals/scenarios.json)**
+   como uma suíte completa, com evidências e métricas. Foram feitos testes
+   manuais específicos no CLI, mas **não há evidência de 12/12** nem de
+   uma execução integral do Testing Center.
+5. Gravar demonstração reproduzível, documentar resultados finais e expandir
+   testes adversariais, limites de taxa, expiração e observabilidade.
+
+Os cenários são um roteiro próprio, não um arquivo nativo do Testing Center.
+Metas futuras: 12/12 cenários aceitos, nenhuma exposição de dados entre
+clientes verificados, zero Cases antes da confirmação e nenhum Case duplicado.
 Use o [Testing Center / Testing API](https://developer.salesforce.com/docs/ai/agentforce/guide/testing-api.html)
 ou Agentforce DX quando disponíveis na org; confirme as exigências e cotas antes do lote.
 
@@ -147,5 +198,7 @@ instruções de manutenção; OpenAPI, cenários e testes são artefatos execut�
 Recursos Salesforce usados no desenho: [External Services como ações](https://help.salesforce.com/s/articleView?id=platform.external_services_custom_agent_actions.htm&language=en_US&type=5),
 [credenciais de integração](https://help.salesforce.com/s/articleView?id=sf.external_services_define_named_credential.htm&language=en_US&type=5)
 e [ações com confirmação](https://help.salesforce.com/s/articleView?id=ai.agent_actions_custom.htm&language=en_US&type=5).
-As fontes descrevem capacidades; a disponibilidade e o comportamento desta integração
-ainda precisam ser confirmados na organização criada para a demo.
+As fontes descrevem capacidades gerais; **parte delas foi comprovada nesta demo**
+por meio de validação e preview com ações reais. Para reproduzir a organização,
+consulte [salesforce/SETUP.md](salesforce/SETUP.md). A configuração de credenciais
+e a identidade de clientes permanecem específicas do ambiente e exigem tratamento separado.
