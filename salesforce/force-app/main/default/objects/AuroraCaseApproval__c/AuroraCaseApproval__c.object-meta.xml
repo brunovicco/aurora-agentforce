@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+  <deploymentStatus>Deployed</deploymentStatus>
+  <description>Trusted authorization ledger for Aurora demo support Case creation. Only administrators or trusted approval services may create or change records.</description>
+  <label>Aurora Case Approval</label>
+  <nameField>
+    <label>Approval Name</label>
+    <type>Text</type>
+  </nameField>
+  <pluralLabel>Aurora Case Approvals</pluralLabel>
+  <sharingModel>Read</sharingModel>
+  <visibility>Public</visibility>
+</CustomObject>

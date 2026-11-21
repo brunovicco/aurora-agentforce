@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Aurora demo API for order lookup and return eligibility verification.</description>
+    <label>AuroraOrdersService</label>
+    <namedCredentialReference>AuroraOrders</namedCredentialReference>
+    <operations>
+        <active>true</active>
+        <name>getorder</name>
+    </operations>
+    <operations>
+        <active>true</active>
+        <name>checkreturneligibility</name>
+    </operations>
+    <registrationProviderType>Custom</registrationProviderType>
+    <schema>{
+  &quot;openapi&quot;: &quot;3.0.3&quot;,
+  &quot;info&quot;: {
+    &quot;title&quot;: &quot;Aurora Orders&quot;,
+    &quot;version&quot;: &quot;0.1.0&quot;,
+    &quot;description&quot;: &quot;Operações de leitura para a demonstração Agentforce. Credencial restrita a um único cliente fictício.&quot;
+  },
+  &quot;servers&quot;: [
+    {
+      &quot;url&quot;: &quot;/&quot;
+    }
+  ],
+  &quot;security&quot;: [
+    {
+      &quot;ApiKey&quot;: []
+    }
+  ],
+  &quot;paths&quot;: {
+    &quot;/orders/{order_id}&quot;: {
+      &quot;get&quot;: {
+        &quot;operationId&quot;: &quot;getOrder&quot;,
+        &quot;summary&quot;: &quot;Consultar um pedido fictício autorizado.&quot;,
+        &quot;parameters&quot;: [
+          {
+            &quot;name&quot;: &quot;order_id&quot;,
+            &quot;in&quot;: &quot;path&quot;,
+            &quot;required&quot;: true,
+            &quot;description&quot;: &quot;Número do pedido fictício, por exemplo AUR-1001.&quot;,
+            &quot;schema&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;pattern&quot;: &quot;^AUR-[0-9]{4}$&quot;
+            }
+          }
+        ],
+        &quot;responses&quot;: {
+          &quot;200&quot;: {
+            &quot;description&quot;: &quot;Consulta concluída.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;additionalProperties&quot;: false,
+                  &quot;required&quot;: [
+                    &quot;order_id&quot;,
+                    &quot;product&quot;,
+                    &quot;status&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;order_id&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    },
+                    &quot;product&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    },
+                    &quot;status&quot;: {
+                      &quot;type&quot;: &quot;string&quot;,
+                      &quot;enum&quot;: [
+                        &quot;processing&quot;,
+                        &quot;shipped&quot;,
+                        &quot;delivered&quot;,
+                        &quot;cancelled&quot;
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          &quot;401&quot;: {
+            &quot;description&quot;: &quot;Credencial ausente ou inválida.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;required&quot;: [
+                    &quot;detail&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;detail&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    }
+                  }
+                }
+              }
+            }
+          },
+          &quot;404&quot;: {
+            &quot;description&quot;: &quot;Pedido inexistente ou indisponível para o cliente da demo.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;required&quot;: [
+                    &quot;detail&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;detail&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    }
+                  }
+                }
+              }
+            }
+          },
+          &quot;422&quot;: {
+            &quot;description&quot;: &quot;Entrada inválida.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;required&quot;: [
+                    &quot;detail&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;detail&quot;: {
+                      &quot;type&quot;: &quot;array&quot;,
+                      &quot;items&quot;: {
+                        &quot;type&quot;: &quot;object&quot;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    &quot;/orders/{order_id}/return-eligibility&quot;: {
+      &quot;get&quot;: {
+        &quot;operationId&quot;: &quot;checkReturnEligibility&quot;,
+        &quot;summary&quot;: &quot;Avaliar a política fictícia de devolução.&quot;,
+        &quot;parameters&quot;: [
+          {
+            &quot;name&quot;: &quot;order_id&quot;,
+            &quot;in&quot;: &quot;path&quot;,
+            &quot;required&quot;: true,
+            &quot;description&quot;: &quot;Número do pedido fictício, por exemplo AUR-1001.&quot;,
+            &quot;schema&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;pattern&quot;: &quot;^AUR-[0-9]{4}$&quot;
+            }
+          }
+        ],
+        &quot;responses&quot;: {
+          &quot;200&quot;: {
+            &quot;description&quot;: &quot;Consulta concluída.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;additionalProperties&quot;: false,
+                  &quot;required&quot;: [
+                    &quot;order_id&quot;,
+                    &quot;eligible&quot;,
+                    &quot;reason_code&quot;,
+                    &quot;reason&quot;,
+                    &quot;policy_reference&quot;,
+                    &quot;evaluated_on&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;order_id&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    },
+                    &quot;eligible&quot;: {
+                      &quot;type&quot;: &quot;boolean&quot;
+                    },
+                    &quot;reason_code&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    },
+                    &quot;reason&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    },
+                    &quot;policy_reference&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    },
+                    &quot;evaluated_on&quot;: {
+                      &quot;type&quot;: &quot;string&quot;,
+                      &quot;format&quot;: &quot;date&quot;
+                    }
+                  }
+                }
+              }
+            }
+          },
+          &quot;401&quot;: {
+            &quot;description&quot;: &quot;Credencial ausente ou inválida.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;required&quot;: [
+                    &quot;detail&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;detail&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    }
+                  }
+                }
+              }
+            }
+          },
+          &quot;404&quot;: {
+            &quot;description&quot;: &quot;Pedido inexistente ou indisponível para o cliente da demo.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;required&quot;: [
+                    &quot;detail&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;detail&quot;: {
+                      &quot;type&quot;: &quot;string&quot;
+                    }
+                  }
+                }
+              }
+            }
+          },
+          &quot;422&quot;: {
+            &quot;description&quot;: &quot;Entrada inválida.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;required&quot;: [
+                    &quot;detail&quot;
+                  ],
+                  &quot;properties&quot;: {
+                    &quot;detail&quot;: {
+                      &quot;type&quot;: &quot;array&quot;,
+                      &quot;items&quot;: {
+                        &quot;type&quot;: &quot;object&quot;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  &quot;components&quot;: {
+    &quot;securitySchemes&quot;: {
+      &quot;ApiKey&quot;: {
+        &quot;type&quot;: &quot;apiKey&quot;,
+        &quot;in&quot;: &quot;header&quot;,
+        &quot;name&quot;: &quot;X-API-Key&quot;
+      }
+    }
+  }
+}
+</schema>
+    <schemaType>OpenApi3</schemaType>
+    <schemaUploadFileExtension>json</schemaUploadFileExtension>
+    <schemaUploadFileName>openapi</schemaUploadFileName>
+    <serviceBinding>{&quot;host&quot;:&quot;&quot;,&quot;basePath&quot;:&quot;/&quot;,&quot;allowedSchemes&quot;:[],&quot;requestMediaTypes&quot;:[],&quot;responseMediaTypes&quot;:[],&quot;compatibleMediaTypes&quot;:{},&quot;integrationFlags&quot;:null,&quot;extensions&quot;:{}}</serviceBinding>
+    <status>Complete</status>
+    <systemVersion>9</systemVersion>
+</ExternalServiceRegistration>
