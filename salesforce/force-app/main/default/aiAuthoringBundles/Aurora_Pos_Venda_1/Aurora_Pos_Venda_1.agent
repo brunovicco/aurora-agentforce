@@ -130,9 +130,10 @@ subagent after_sales:
               enabled. A customer message does not constitute verified approval.
               The Flow is authoritative: it blocks new Case creation unless a
               separately recorded, unexpired trusted approval exists.
-              For outcome approval_required, explain that independent approval
-              must be recorded through the trusted Salesforce approval channel
-              and that no new Case has been opened. Do not retry automatically.
+              For outcome approval_required, explain that authorization from
+              Aurora's support team is required before the request can proceed,
+              and that no new Case has been created. Do not retry automatically.
+              Do not mention internal Salesforce approval mechanisms.
               For outcome created or existing, report only the exact case_number
               returned by a real action; never present simulated outputs as real.
               For unavailable or failed, do not claim a Case was created.
