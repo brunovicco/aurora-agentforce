@@ -10,9 +10,19 @@ DEMO_CUSTOMER_REF = "customer-demo-001"
 def demo_orders(today: date) -> tuple[Order, ...]:
     """Build only synthetic records, including one inaccessible customer's order."""
     return (
-        Order("AUR-1001", DEMO_CUSTOMER_REF, "Aurora Headphones", "delivered", today - timedelta(days=5)),
         Order(
-            "AUR-1002", DEMO_CUSTOMER_REF, "Aurora Keyboard", "delivered", today - timedelta(days=31)
+            "AUR-1001",
+            DEMO_CUSTOMER_REF,
+            "Aurora Headphones",
+            "delivered",
+            today - timedelta(days=5),
+        ),
+        Order(
+            "AUR-1002",
+            DEMO_CUSTOMER_REF,
+            "Aurora Keyboard",
+            "delivered",
+            today - timedelta(days=31),
         ),
         Order("AUR-1003", DEMO_CUSTOMER_REF, "Aurora Mouse", "shipped"),
         Order(

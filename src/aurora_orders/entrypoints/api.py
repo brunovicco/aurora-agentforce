@@ -47,9 +47,7 @@ def create_app(*, api_key: str | None = None, clock: Callable[[], date] = utc_to
     """Compose the demo; fail closed if an API credential was not configured."""
     configured_key = api_key if api_key is not None else os.environ.get("AURORA_API_KEY", "")
     if len(configured_key.strip()) < 32:
-        raise ValueError(
-            "Set AURORA_API_KEY to a random key of at least 32 characters."
-        )
+        raise ValueError("Set AURORA_API_KEY to a random key of at least 32 characters.")
 
     orders = demo_orders(clock())
     header = APIKeyHeader(name="X-API-Key", auto_error=False)

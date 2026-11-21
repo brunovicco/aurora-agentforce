@@ -22,11 +22,7 @@ def tag(name: str) -> str:
 
 def one_node(root: ET.Element, kind: str, name: str) -> ET.Element:
     """Return one named Flow node, rejecting missing or duplicate matches."""
-    matches = [
-        node
-        for node in root.findall(tag(kind))
-        if node.findtext(tag("name")) == name
-    ]
+    matches = [node for node in root.findall(tag(kind)) if node.findtext(tag("name")) == name]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one {kind} named {name}; found {len(matches)}")
     return matches[0]

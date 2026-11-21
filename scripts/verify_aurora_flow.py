@@ -4,9 +4,9 @@
 These checks complement, but do not replace, Salesforce validation and runtime tests.
 """
 
+import sys
 from collections import deque
 from pathlib import Path
-import sys
 from xml.etree import ElementTree as ET
 
 # This script uses assertions intentionally to validate trusted repository metadata.
@@ -40,9 +40,7 @@ def verify(flow_path: Path) -> None:
         for child in root
         if child.tag.removeprefix(f"{{{NAMESPACE}}}") in NODE_TYPES
     }
-    expected_count = sum(
-        child.tag.removeprefix(f"{{{NAMESPACE}}}") in NODE_TYPES for child in root
-    )
+    expected_count = sum(child.tag.removeprefix(f"{{{NAMESPACE}}}") in NODE_TYPES for child in root)
     assert len(nodes) == expected_count, "Duplicate node names"
     graph = {
         name: [reference.text for reference in node.iter(tag("targetReference"))]
@@ -56,9 +54,7 @@ def verify(flow_path: Path) -> None:
     assert len(creation_nodes) == 1, "Exactly one controlled Case create"
     creation = creation_nodes[0]
     assert creation.findtext(tag("object")) == "Case"
-    fault_target = creation.findtext(
-        f"{tag('faultConnector')}/{tag('targetReference')}"
-    )
+    fault_target = creation.findtext(f"{tag('faultConnector')}/{tag('targetReference')}")
     assert fault_target == "GetCaseAfterCreateFailure"
     assignments = {
         assignment.findtext(tag("field")): (
@@ -143,9 +139,7 @@ def verify(flow_path: Path) -> None:
     assert "FindApprovedAuroraRequest" in reachable("StoreValidatedOrder", graph)
     assert "ReturnCreated" in reachable("GetCreatedCase", graph)
 
-    request_key = root.find(
-        f"{tag('formulas')}[{tag('name')}='frmRequestKey']"
-    )
+    request_key = root.find(f"{tag('formulas')}[{tag('name')}='frmRequestKey']")
     assert request_key is not None
     assert "customer-demo-001:" in (request_key.findtext(tag("expression")) or "")
 
