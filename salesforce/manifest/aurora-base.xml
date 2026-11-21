@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ns0:Package xmlns:ns0="http://soap.sforce.com/2006/04/metadata">
+    <ns0:types>
+        <ns0:members>Case.AuroraRequestKey__c</ns0:members>
+        <ns0:members>AuroraCaseApproval__c.Approved__c</ns0:members>
+        <ns0:members>AuroraCaseApproval__c.ExpiresAt__c</ns0:members>
+        <ns0:members>AuroraCaseApproval__c.RequestKey__c</ns0:members>
+        <ns0:name>CustomField</ns0:name>
+    </ns0:types>
+    <ns0:types>
+        <ns0:members>AbrirCasoPosVenda</ns0:members>
+        <ns0:name>Flow</ns0:name>
+    </ns0:types>
+    <ns0:types>
+        <ns0:members>Aurora_API_Access</ns0:members>
+        <ns0:members>Aurora_Approval_Read</ns0:members>
+        <ns0:members>Aurora_Case_Access</ns0:members>
+        <ns0:name>PermissionSet</ns0:name>
+    </ns0:types>
+    <ns0:types>
+        <ns0:members>AuroraOrdersService</ns0:members>
+        <ns0:name>ExternalServiceRegistration</ns0:name>
+    </ns0:types>
+    <ns0:types>
+        <ns0:members>AuroraCaseApproval__c</ns0:members>
+        <ns0:name>CustomObject</ns0:name>
+    </ns0:types>
+    <ns0:version>68.0</ns0:version>
+</ns0:Package>

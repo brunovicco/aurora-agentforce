@@ -1,0 +1,40 @@
+name: Salesforce DX metadata checks
+
+on:
+  pull_request:
+    paths:
+      - 'salesforce/**'
+      - 'scripts/sf-*.sh'
+      - '.github/workflows/salesforce-metadata.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  metadata-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Salesforce project configuration and XML files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          project = json.loads(Path('salesforce/sfdx-project.json').read_text())
+          assert project['sourceApiVersion'] == '68.0'
+          assert project['packageDirectories'][0]['path'] == 'force-app'
+          xml_files = list(Path('salesforce').rglob('*.xml'))
+          for item in xml_files:
+              ET.parse(item)
+          print(f'Validated DX project and {len(xml_files)} XML files.')
+          PY
+      - name: Shell script syntax
+        run: |
+          for f in scripts/sf-*.sh; do bash -n "$f"; done
+
+# This workflow is intentionally offline: it does NOT authenticate into an
+# org, deploy metadata, run agent actions, or expose Salesforce secrets.
