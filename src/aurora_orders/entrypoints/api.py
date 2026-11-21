@@ -48,7 +48,7 @@ def create_app(*, api_key: str | None = None, clock: Callable[[], date] = utc_to
     configured_key = api_key if api_key is not None else os.environ.get("AURORA_API_KEY", "")
     if len(configured_key.strip()) < 32:
         raise ValueError(
-            "Configure AURORA_API_KEY com uma chave aleatória de ao menos 32 caracteres."
+            "Set AURORA_API_KEY to a random key of at least 32 characters."
         )
 
     orders = demo_orders(clock())
@@ -57,13 +57,13 @@ def create_app(*, api_key: str | None = None, clock: Callable[[], date] = utc_to
 
     def authenticate(key: Annotated[str | None, Security(header)]) -> None:
         if key is None or not secrets.compare_digest(key.encode(), configured_key.encode()):
-            raise HTTPException(status_code=401, detail="Credencial inválida.")
+            raise HTTPException(status_code=401, detail="Invalid integration credential.")
 
     def authorized_order(order_id: str) -> Order:
         try:
             return find_order(orders, order_id=order_id, customer_ref=DEMO_CUSTOMER_REF)
         except OrderUnavailable as error:
-            raise HTTPException(status_code=404, detail="Pedido indisponível.") from error
+            raise HTTPException(status_code=404, detail="Order unavailable.") from error
 
     @app.get("/health", include_in_schema=False)
     def health() -> dict[str, str]:

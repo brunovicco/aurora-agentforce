@@ -1,17 +1,17 @@
 # Aurora Agentforce
 
-Projeto de portfólio: Agentforce na Salesforce e uma API Python de pedidos fictícios.
-Leia README.md e salesforce/SETUP.md antes de alterar escopo.
+Portfolio project: Salesforce Agentforce with an external Python API serving fictional orders.
+Read README.md and salesforce/SETUP.md before changing the scope.
 
-- Preserve Python 3.14, uv, tipagem completa e Mypy strict.
-- Não use `from __future__ import annotations`.
-- Dependências: entrypoints -> application -> domain; adapters contém apenas dados de demonstração.
-- Regras de negócio são determinísticas. O LLM não decide elegibilidade.
-- Trabalhe apenas com dados sintéticos. Nunca registre chaves, prompts ou dados pessoais.
-- O contexto da demonstração tem um único cliente fixo; não confunda isso com autenticação de usuários.
-- Teste comportamento, erros, autorização e contrato externo.
-- Execute `uv run python scripts/quality_gate.py` antes de concluir alterações Python.
-- Mantenha documentação explicativa em README.md (EN), readme.pt-BR.md (PT-BR) e salesforce/SETUP.md; atualize-os quando necessário.
-- Não adicione serviços, frameworks de agentes, MCP, banco ou camadas sem necessidade demonstrável.
-- Não declare testes Salesforce, publicação ou deploy concluídos sem evidência na organização.
-- Não faça commit, push, publicação ou deploy sem pedido explícito.
+- Preserve Python 3.14, uv, complete type annotations, and strict Mypy checks.
+- Do not use `from __future__ import annotations`.
+- Dependency direction: entrypoints -> application -> domain; adapters hold demo data only.
+- Business decisions must remain deterministic. The LLM does not decide return eligibility.
+- Use synthetic data only. Never commit secrets, prompts with private information, or personal data.
+- The demo uses one fixed customer reference; do not mistake this for end-user authentication.
+- Test behavior, errors, authorization, and the external API contract.
+- Run `uv run python scripts/quality_gate.py` before completing Python changes.
+- Keep explanatory documentation in README.md (English), readme.pt-BR.md (Brazilian Portuguese), and salesforce/SETUP.md; maintain them consistently.
+- Do not add services, agent frameworks, MCP, databases, or layers without demonstrated need.
+- Do not claim Salesforce tests, deployments, or release milestones without org evidence.
+- Do not commit, push, publish, or deploy unless explicitly requested.

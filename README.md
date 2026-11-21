@@ -1,6 +1,6 @@
 # Aurora After-Sales — an Agentforce engineering case study
 
-[**Português (Brasil)**](readme.pt-BR.md) · [Salesforce setup and validation](salesforce/SETUP.md) · [MIT License](LICENSE)
+[**Brazilian Portuguese**](readme.pt-BR.md) · [Salesforce setup and validation](salesforce/SETUP.md) · [MIT License](LICENSE)
 
 **How much authority should a conversational AI agent have when it can read business data and create records?**
 

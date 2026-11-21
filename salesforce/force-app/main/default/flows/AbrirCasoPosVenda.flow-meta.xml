@@ -216,7 +216,7 @@
     <defaultConnector>
       <targetReference>HandleInvalidOrder</targetReference>
     </defaultConnector>
-    <defaultConnectorLabel>Resultado padrão</defaultConnectorLabel>
+    <defaultConnectorLabel>Default outcome</defaultConnectorLabel>
     <rules>
       <name>ValidOrder</name>
       <conditionLogic>and</conditionLogic>

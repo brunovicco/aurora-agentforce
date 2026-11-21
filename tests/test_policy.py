@@ -18,7 +18,7 @@ TODAY = date(2026, 11, 5)
     ],
 )
 def test_return_window_is_inclusive(elapsed_days: int, eligible: bool, code: str) -> None:
-    order = Order("AUR-1001", "demo", "Fone", "delivered", TODAY - timedelta(days=elapsed_days))
+    order = Order("AUR-1001", "demo", "Headphones", "delivered", TODAY - timedelta(days=elapsed_days))
     decision = evaluate_return(order, today=TODAY)
     assert decision.eligible is eligible
     assert decision.reason_code == code
@@ -27,19 +27,19 @@ def test_return_window_is_inclusive(elapsed_days: int, eligible: bool, code: str
 
 @pytest.mark.parametrize("status", ["processing", "shipped", "cancelled"])
 def test_non_delivered_orders_are_ineligible(status: OrderStatus) -> None:
-    decision = evaluate_return(Order("AUR-1001", "demo", "Fone", status), today=TODAY)
+    decision = evaluate_return(Order("AUR-1001", "demo", "Headphones", status), today=TODAY)
     assert decision.eligible is False
     assert decision.reason_code == "NOT_DELIVERED"
 
 
 def test_missing_delivery_date_requires_review() -> None:
-    decision = evaluate_return(Order("AUR-1001", "demo", "Fone", "delivered"), today=TODAY)
+    decision = evaluate_return(Order("AUR-1001", "demo", "Headphones", "delivered"), today=TODAY)
     assert decision.eligible is False
     assert decision.reason_code == "INVALID_DELIVERY_DATE"
 
 
 def test_excluded_item_is_ineligible_even_on_delivery_day() -> None:
-    order = Order("AUR-1001", "demo", "Personalizado", "delivered", TODAY, returnable=False)
+    order = Order("AUR-1001", "demo", "Custom Item", "delivered", TODAY, returnable=False)
     decision = evaluate_return(order, today=TODAY)
     assert decision.eligible is False
     assert decision.reason_code == "EXCLUDED_ITEM"

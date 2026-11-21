@@ -34,11 +34,11 @@ class ReturnDecision:
 def evaluate_return(order: Order, *, today: date) -> ReturnDecision:
     """Accept delivered, returnable items through day 30, inclusive, in UTC."""
     if order.status != "delivered":
-        return ReturnDecision(False, "NOT_DELIVERED", "O pedido ainda não foi entregue.")
+        return ReturnDecision(False, "NOT_DELIVERED", "The order has not been delivered yet.")
     if order.delivered_on is None or order.delivered_on > today:
-        return ReturnDecision(False, "INVALID_DELIVERY_DATE", "A data de entrega exige revisão.")
+        return ReturnDecision(False, "INVALID_DELIVERY_DATE", "The delivery date needs review.")
     if not order.returnable:
-        return ReturnDecision(False, "EXCLUDED_ITEM", "Item excluído da política fictícia da demo.")
+        return ReturnDecision(False, "EXCLUDED_ITEM", "This item is excluded from the fictional demo policy.")
     if (today - order.delivered_on).days > RETURN_WINDOW_DAYS:
-        return ReturnDecision(False, "WINDOW_EXPIRED", "O prazo fictício de 30 dias foi excedido.")
-    return ReturnDecision(True, "ELIGIBLE", "Item elegível pela política fictícia de 30 dias.")
+        return ReturnDecision(False, "WINDOW_EXPIRED", "The fictional 30-day return window has expired.")
+    return ReturnDecision(True, "ELIGIBLE", "This item is eligible under the fictional 30-day return policy.")

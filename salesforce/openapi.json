@@ -3,7 +3,7 @@
   "info": {
     "title": "Aurora Orders",
     "version": "0.1.0",
-    "description": "Operações de leitura para a demonstração Agentforce. Credencial restrita a um único cliente fictício."
+    "description": "Read-only operations for the Agentforce demo. The integration credential is scoped to one fictional customer."
   },
   "servers": [
     {
@@ -19,13 +19,13 @@
     "/orders/{order_id}": {
       "get": {
         "operationId": "getOrder",
-        "summary": "Consultar um pedido fictício autorizado.",
+        "summary": "Retrieve an authorized fictional order.",
         "parameters": [
           {
             "name": "order_id",
             "in": "path",
             "required": true,
-            "description": "Número do pedido fictício, por exemplo AUR-1001.",
+            "description": "Fictional order ID, for example AUR-1001.",
             "schema": {
               "type": "string",
               "pattern": "^AUR-[0-9]{4}$"
@@ -34,7 +34,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Consulta concluída.",
+            "description": "Request completed successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -67,7 +67,7 @@
             }
           },
           "401": {
-            "description": "Credencial ausente ou inválida.",
+            "description": "Missing or invalid integration credential.",
             "content": {
               "application/json": {
                 "schema": {
@@ -85,7 +85,7 @@
             }
           },
           "404": {
-            "description": "Pedido inexistente ou indisponível para o cliente da demo.",
+            "description": "Order not found or unavailable to the demo customer.",
             "content": {
               "application/json": {
                 "schema": {
@@ -103,7 +103,7 @@
             }
           },
           "422": {
-            "description": "Entrada inválida.",
+            "description": "Invalid input.",
             "content": {
               "application/json": {
                 "schema": {
@@ -129,13 +129,13 @@
     "/orders/{order_id}/return-eligibility": {
       "get": {
         "operationId": "checkReturnEligibility",
-        "summary": "Avaliar a política fictícia de devolução.",
+        "summary": "Evaluate the fictional return policy.",
         "parameters": [
           {
             "name": "order_id",
             "in": "path",
             "required": true,
-            "description": "Número do pedido fictício, por exemplo AUR-1001.",
+            "description": "Fictional order ID, for example AUR-1001.",
             "schema": {
               "type": "string",
               "pattern": "^AUR-[0-9]{4}$"
@@ -144,7 +144,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Consulta concluída.",
+            "description": "Request completed successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -184,7 +184,7 @@
             }
           },
           "401": {
-            "description": "Credencial ausente ou inválida.",
+            "description": "Missing or invalid integration credential.",
             "content": {
               "application/json": {
                 "schema": {
@@ -202,7 +202,7 @@
             }
           },
           "404": {
-            "description": "Pedido inexistente ou indisponível para o cliente da demo.",
+            "description": "Order not found or unavailable to the demo customer.",
             "content": {
               "application/json": {
                 "schema": {
@@ -220,7 +220,7 @@
             }
           },
           "422": {
-            "description": "Entrada inválida.",
+            "description": "Invalid input.",
             "content": {
               "application/json": {
                 "schema": {

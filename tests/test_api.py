@@ -16,7 +16,7 @@ def test_reads_require_valid_authentication(
 ) -> None:
     response = client.get(route.format("AUR-1001"), headers=supplied_headers)
     assert response.status_code == 401
-    assert response.json() == {"detail": "Credencial inválida."}
+    assert response.json() == {"detail": "Invalid integration credential."}
 
 
 @pytest.mark.parametrize("route", ROUTES)
@@ -26,7 +26,7 @@ def test_other_customer_and_missing_orders_have_same_response(
     denied = client.get(route.format("AUR-9001"), headers=headers)
     missing = client.get(route.format("AUR-9999"), headers=headers)
     assert denied.status_code == missing.status_code == 404
-    assert denied.json() == missing.json() == {"detail": "Pedido indisponível."}
+    assert denied.json() == missing.json() == {"detail": "Order unavailable."}
 
 
 @pytest.mark.parametrize("route", ROUTES)
@@ -53,7 +53,7 @@ def test_order_response_exposes_only_needed_fields(
     assert response.status_code == 200
     assert response.json() == {
         "order_id": "AUR-1003",
-        "product": "Mouse Aurora",
+        "product": "Aurora Mouse",
         "status": "shipped",
     }
 

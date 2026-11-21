@@ -1,7 +1,7 @@
 [project]
 name = "aurora-agentforce"
 version = "0.1.0"
-description = "API de pedidos fictícios para um portfólio Salesforce Agentforce"
+description = "Synthetic orders API for a Salesforce Agentforce after-sales case study"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [

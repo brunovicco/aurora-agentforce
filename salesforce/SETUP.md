@@ -1,89 +1,57 @@
-# Salesforce — configuração e estado da demonstração Aurora
+# Salesforce — Aurora demo setup and verified status
 
-**Marco parcial (21/11/2026).** A integração foi configurada e exercitada
-em uma Salesforce Developer Edition, com ações reais de Agentforce e criação
-de registros `Case`. Este guia descreve o que foi validado, o que é
-específico da organização e o que ainda falta. **Não é um procedimento
-de instalação automática em qualquer org, nem uma solução pronta para produção.**
+**Partial milestone (November 21, 2026).** The integration was configured and exercised in a Salesforce Developer Edition with real Agentforce actions and Salesforce `Case` records. This guide separates verified behavior from org-specific setup and unfinished work. **It is not an automatic installer or a production-ready customer support solution.**
 
-## Componentes implementados
+[Main README (English)](../README.md) · [Brazilian Portuguese overview](../readme.pt-BR.md)
 
-- Bundle do agente: `force-app/main/default/aiAuthoringBundles/Aurora_Pos_Venda_1/`
-  (`Aurora_Pos_Venda_1.agent`), com ações `Get_Order`,
-  `Check_Return_Eligibility` e `Create_Support_Case`.
-- External Service `AuroraOrdersService` (operações `getOrder` e
-  `checkReturnEligibility`), usando a Named Credential `AuroraOrders`.
-- Flow autolaunched `AbrirCasoPosVenda` (`order_id` como entrada;
-  `case_number` e `outcome` como saídas).
-- Campo único `Case.AuroraRequestKey__c` para idempotência.
-- Objeto `AuroraCaseApproval__c`, com `RequestKey__c` único,
-  `Approved__c` e `ExpiresAt__c` para autorização prévia independente.
-- Permission Sets `Aurora_API_Access`, `Aurora_Approval_Read` e
-  `Aurora_Case_Access`.
+## Implemented components
 
-O código e os metadados estão versionados; **não** estão versionados os
-segredos da External Credential, autorização local do Salesforce CLI, dados
-criados na org nem a URL temporária do túnel.
+- Agent Script bundle: `force-app/main/default/aiAuthoringBundles/Aurora_Pos_Venda_1/` with `Get_Order`, `Check_Return_Eligibility`, and `Create_Support_Case` actions.
+- External Service `AuroraOrdersService`, exposing `getOrder` and `checkReturnEligibility`, backed by the `AuroraOrders` Named Credential.
+- Autolaunched Flow `AbrirCasoPosVenda` with input `order_id` and outputs `case_number` and `outcome`.
+- Unique `Case.AuroraRequestKey__c` field for idempotency.
+- `AuroraCaseApproval__c` custom object with `RequestKey__c`, `Approved__c`, and `ExpiresAt__c` for independent approval.
+- Permission Sets `Aurora_API_Access`, `Aurora_Approval_Read`, and `Aurora_Case_Access`.
 
-## Integração da API
+Source and metadata are committed. External Credential secrets, local Salesforce CLI sessions, org records, and the temporary tunnel URL are **not** committed.
 
-A API Python local usa `AURORA_API_KEY` com pelo menos 32 caracteres
-e autenticação pelo cabeçalho `X-API-Key`. O contrato publicado é
-[`openapi.json`](openapi.json), OpenAPI 3.0.3.
+## Connect the Orders API
 
-Para conectar a Salesforce, inicie a API conforme o [README principal](../README.md)
-e use uma URL HTTPS acessível temporariamente, por exemplo:
+The local Python service requires an `AURORA_API_KEY` of at least 32 characters and validates the `X-API-Key` header. Use the tested [OpenAPI 3.0.3 contract](openapi.json) for the Salesforce External Service.
+
+Start the API as described in the [main README](../README.md). For a temporary public HTTPS URL during development, run:
 
 ```bash
 cloudflared tunnel --url http://localhost:8000
 ```
 
-O Quick Tunnel muda de endereço e requer o processo local em execução.
-Ele foi utilizado nos testes, **não é uma hospedagem permanente**.
+The Cloudflare Quick Tunnel changes its URL and requires the local API to remain running. It was used for integration tests, **not** as permanent hosting.
 
-A configuração manual na organização inclui:
+The org-specific setup includes:
 
-1. External Credential `AuroraApiAuth`, principal nomeado
-   `AuroraDemoPrincipal` e parâmetro secreto de chave de API.
-2. Cabeçalho `X-API-Key` construído a partir do parâmetro protegido
-   da credencial, sem copiar o valor para metadados versionados.
-3. Named Credential `AuroraOrders` apontando para o endpoint HTTPS atual,
-   com acesso do principal concedido ao usuário de execução via
-   `Aurora_API_Access`.
-4. Registro de External Service `AuroraOrdersService` associado à Named
-   Credential. Para um ambiente novo, valide ordem de provisionamento,
-   permissões e compatibilidade de API antes de implantar o pacote.
+1. Create External Credential `AuroraApiAuth` with named principal `AuroraDemoPrincipal` and a protected API key parameter.
+2. Set the `X-API-Key` header using that protected credential parameter; do not embed the key in source or metadata.
+3. Configure Named Credential `AuroraOrders` with the current HTTPS endpoint and grant its principal access to the agent execution user through `Aurora_API_Access`.
+4. Register `AuroraOrdersService` against that Named Credential. For a new org, verify dependency order, permissions, and API compatibility.
 
-**A chave autentica a integração Salesforce → API, não o cliente da
-conversa.** O backend utiliza `customer-demo-001` fixo; não presuma
-isolamento por cliente autenticado.
+**The key authenticates the Salesforce-to-API integration, not the customer in the conversation.** The backend currently uses fixed `customer-demo-001`. It does not yet implement authenticated customer isolation.
 
-## Fluxo de autorização e idempotência
+## Authorization and idempotency in the Flow
 
-O Flow faz nova validação do pedido na API e constrói uma chave determinística
-do tipo `customer-demo-001:AUR-1003:post-sale` (dados inteiramente fictícios).
+The Flow revalidates the order through the API and builds a deterministic key such as `customer-demo-001:AUR-1003:post-sale` (all synthetic data).
 
-A sequência validada é:
+Verified execution order:
 
-1. Verificar resposta `200` e `order_id` idêntico ao solicitado.
-2. Buscar aprovação independente com `RequestKey__c` correspondente,
-   `Approved__c = true` e `ExpiresAt__c` futuro.
-3. **Somente após aprovação**, consultar o Case existente e, se não houver,
-   criar um novo com a chave única.
-4. Devolver `created` ou `existing` com `case_number` verdadeiro;
-   `approval_required`, `unavailable` e `failed` não divulgam número.
+1. Require HTTP `200`, a non-null returned `order_id`, and an exact match with the requested ID.
+2. Find an independent approval with matching `RequestKey__c`, `Approved__c = true`, and a future `ExpiresAt__c`.
+3. **Only after approval**, look for an existing Case or create one using the unique request key.
+4. Return `created` or `existing` with a genuine `case_number`; `approval_required`, `unavailable`, and `failed` do not disclose a Case number.
 
-A ação `Create_Support_Case` exige confirmação nativa do Agentforce.
-Uma resposta `yes` na conversa **não substitui** a aprovação independente.
-A aprovação é representada pelo objeto personalizado, preenchido
-separadamente por um usuário autorizado; **não implementamos um Salesforce
-Approval Process formal nem um mecanismo de consentimento do cliente**.
-Nunca conceda ao agente permissão para criar, editar ou excluir aprovações.
+The `Create_Support_Case` action requires native Agentforce confirmation. A conversational `yes` does **not** replace independent approval. Authorization is a custom record managed separately by an authorized user; this demo does **not** include a native Salesforce Approval Process or automated customer consent. Never grant the agent create/edit/delete rights on approval records.
 
-## Validar na Developer Edition
+## Validate with a Developer Edition org
 
-No diretório `salesforce/`, com a org autenticada (alias de exemplo:
-`aurora-dev`):
+From `salesforce/`, after authenticating your org (example alias: `aurora-dev`):
 
 ```bash
 sf agent validate authoring-bundle \
@@ -99,12 +67,10 @@ sf agent preview start \
   --target-org aurora-dev
 ```
 
-A validação do bundle concluiu com **zero erros**. O Flow corrigido foi
-implantado e ficou ativo na org utilizada na demonstração. Para testar
-uma sessão nova, use o ID retornado:
+The bundle validation completed with **zero errors**, and the corrected Flow was deployed and active in the tested org. After starting a preview, use the returned session ID:
 
 ```bash
-SESSION_ID="COLE_O_ID_RETORNADO"
+SESSION_ID="PASTE_RETURNED_SESSION_ID"
 
 sf agent preview send \
   --authoring-bundle Aurora_Pos_Venda_1 \
@@ -124,62 +90,32 @@ sf agent trace read \
   --dimension actions
 ```
 
-**Atenção:** `--use-live-actions` pode executar gravações reais.
-Não repita comandos de criação ou alteração de aprovação sem compreender
-o efeito sobre o estado da organização.
+**Warning:** `--use-live-actions` can write actual Salesforce records. Avoid repeating approval updates or create requests without understanding the current org state.
 
-### Evidências coletadas
+### Evidence collected in the org
 
-- `AUR-1003`: criação real de Case e recuperação posterior do mesmo número
-  com aprovação válida, sem duplicação.
-- Aprovação revogada: resultado `approval_required`, sem divulgação
-  do número do Case que já existia. O trace bruto mostrou
-  `case_number = ''`.
-- Confirmação negativa: ação de criação não foi invocada no preview testado.
-- Resposta do agente atualizada: orienta procurar a equipe de suporte,
-  sem afirmar existência de um canal oficial de aprovação do Salesforce.
-- Revisão de `ObjectPermissions`, `FieldPermissions`,
-  `PermissionSetGroupComponent` e `UserRecordAccess`: leitura de
-  aprovações, sem criação/edição/exclusão; leitura/criação de Cases,
-  sem edição/exclusão. Verificações efetuadas com o usuário
-  Einstein Agent da demonstração.
+- `AUR-1003`: a real Case was created, then returned as the existing Case when approval was valid, without duplication.
+- Revoked approval: `approval_required` was returned **without disclosing an existing Case number**. Raw trace showed `case_number = ''`.
+- Negative confirmation: the Case action was not invoked in the tested preview.
+- User-facing wording was corrected to request support-team authorization instead of claiming a formal Salesforce approval channel.
+- `ObjectPermissions`, `FieldPermissions`, `PermissionSetGroupComponent`, and `UserRecordAccess` were inspected for the Einstein Agent user. Approval records were readable, not creatable/editable/deletable; Cases were readable/creatable, not editable/deletable, under the inspected permissions.
 
-Essas evidências são **testes manuais pontuais**, não um relatório completo
-do Testing Center ou uma garantia de segurança de produção.
+These are **targeted manual tests**, not a complete Testing Center report or a production security guarantee.
 
-## Limitação de segurança demonstrada
+## Demonstrated customer-identity gap
 
-Um preview com a pergunta
-`What is the current status of order AUR-1003?`
-retornou `Mouse Aurora` e `shipped` **sem verificar a identidade
-do consumidor**.
+A live preview of `What is the current status of order AUR-1003?` returned its product and `shipped` status **without verifying the end customer's identity**.
 
-Isso demonstra uma lacuna entre autenticação da integração e autenticação
-do cliente. O Approval Guard protege o caminho de Case, mas as ações de
-status e elegibilidade ainda dependem de um único cliente sintético fixo.
-O identificador `VerifiedCustomerId` no Agent Script é apenas uma variável
-reservada; **não é uma identidade autenticada**.
+This separates integration authentication from customer authentication. The approval guard covers Case lookup/creation; order status and return eligibility still rely on a fixed synthetic customer. The `VerifiedCustomerId` variable in Agent Script is only reserved for future use; **it is not proof of authentication**.
 
-**Não exponha esse agente como canal público de atendimento até
-implementar autorização individual no backend e nos Flows.**
+**Do not expose the agent as a public customer-support channel until customer-level authorization is enforced by both the backend and the Flow.**
 
-## Pendências para evolução
+## Remaining work
 
-1. Integrar identidade autenticada do consumidor ao canal ou a uma etapa
-   confiável de verificação (OTP é uma opção de desenho, **não implementada**).
-2. Propagar contexto autenticado protegido contra manipulação pelo agente,
-   validar o vínculo cliente–pedido nas duas ações externas e no Flow,
-   e vincular aprovações e Cases à identidade verificada.
-3. Aplicar comportamento fail-closed a chamadas sem identidade, com
-   testes de acesso cruzado, expiração e revogação de sessão.
-4. Revisar e versionar, após inspeção, scripts auxiliares locais de
-   retrieve, deploy e validação, manifesto e workflow Salesforce CI.
-   Eles não fazem parte do marco validado automaticamente.
-5. Executar integralmente os
-   [12 cenários de avaliação](../evals/scenarios.json), capturar
-   evidências/latência, automatizar testes e preparar uma demonstração gravada.
-6. Documentar uma implantação reproduzível em uma org limpa, incluindo
-   pré-requisitos das credenciais, valores de picklists e dependências da org.
+1. Introduce a trusted customer authentication/session mechanism (OTP is a design option, **not implemented**).
+2. Propagate tamper-resistant authenticated context; validate customer-to-order ownership for both External Service reads and the Case Flow; bind approvals and Cases to verified identity.
+3. Fail closed without verified identity; cover cross-customer reads, session expiration, and revocation in tests.
+4. Validate a complete fresh-org deployment, dependencies, and secure credential setup. The DX scripts and metadata workflow are versioned but are not evidence of fully automated provisioning.
+5. Execute and report all [12 Agentforce evaluation scenarios](../evals/scenarios.json), including negative tests, action traces, and latencies; record a reproducible demo.
 
-O projeto emprega **dados fictícios**, não usa reembolsos reais e não deve
-ser confundido com um serviço de pós-venda em produção.
+This project uses **fictional data** and does not perform real refunds.
