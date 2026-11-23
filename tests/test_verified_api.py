@@ -130,3 +130,8 @@ def test_no_public_token_minting_endpoint(secure_client: TestClient) -> None:
     paths = set(secure_client.get("/openapi.json").json()["paths"])
     assert all("session" not in path and "token" not in path for path in paths)
     assert "/verified/orders/{order_id}" in paths
+
+
+def test_customer_signing_key_must_differ_from_integration_key() -> None:
+    with pytest.raises(ValueError, match="different secrets"):
+        create_app(api_key=TEST_API_KEY, session_signing_key=TEST_API_KEY)
