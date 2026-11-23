@@ -74,6 +74,8 @@ def create_app(
     )
     if session_secret:
         validate_signing_key(session_secret)
+        if secrets.compare_digest(session_secret.encode(), configured_key.encode()):
+            raise ValueError("Use different secrets for integration and customer sessions.")
     unsafe_demo = (
         os.environ.get("AURORA_ENABLE_UNVERIFIED_DEMO_READS") == "1"
         if allow_unverified_demo_reads is None
