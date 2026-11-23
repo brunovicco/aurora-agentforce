@@ -112,9 +112,7 @@ def test_revoked_session_rejected_in_api() -> None:
         revoked_session_ids=frozenset({"s-01"}),
     )
     with TestClient(app) as client:
-        assert client.get(
-            "/verified/orders/AUR-1001", headers=session_headers()
-        ).status_code == 401
+        assert client.get("/verified/orders/AUR-1001", headers=session_headers()).status_code == 401
 
 
 def test_verified_routes_fail_closed_without_session_signing_key(
