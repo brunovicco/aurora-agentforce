@@ -15,6 +15,14 @@
 
 Source and metadata are committed. External Credential secrets, local Salesforce CLI sessions, org records, and the temporary tunnel URL are **not** committed.
 
+## New backend security increment (not deployed to the org)
+
+The feature branch introduces `/verified/orders/{order_id}` and `/verified/orders/{order_id}/return-eligibility`, each enforcing an integration key **and** a signed short-lived customer session. Identity comes from a trusted issuer, never from the chat or an LLM-selected action parameter. Offline tests cover isolation, expiry, revocation injection and tampering. No public token issuer was added.
+
+**The currently deployed Agentforce External Service, Agent Script and Case Flow still use the legacy fixed-customer routes.** They have not been migrated to the verified paths, and no Salesforce org tests have been run for this increment. For the original isolated demo to work with this version of the backend, explicitly set `AURORA_ENABLE_UNVERIFIED_DEMO_READS=1`; do not enable this in a public customer channel. Without that opt-in, legacy routes return 403. Verified routes need `AURORA_CUSTOMER_SESSION_SECRET` and return 503 without it. Keep the signing key outside Salesforce prompts, metadata and agent arguments.
+
+Next steps for a **real** Salesforce integration: authenticate the consumer via a trusted provider/channel, propagate a short-lived context through a server-controlled integration (not chat or LLM parameters), validate it for **both** read operations and the Flow, scope Case approval/idempotency keys to the verified customer, implement durable revocation and document org validation evidence. The original Flow remains unchanged on this branch to avoid pretending these controls are already wired.
+
 ## Connect the Orders API
 
 The local Python service requires an `AURORA_API_KEY` of at least 32 characters and validates the `X-API-Key` header. Use the tested [OpenAPI 3.0.3 contract](openapi.json) for the Salesforce External Service.
@@ -34,7 +42,7 @@ The org-specific setup includes:
 3. Configure Named Credential `AuroraOrders` with the current HTTPS endpoint and grant its principal access to the agent execution user through `Aurora_API_Access`.
 4. Register `AuroraOrdersService` against that Named Credential. For a new org, verify dependency order, permissions, and API compatibility.
 
-**The key authenticates the Salesforce-to-API integration, not the customer in the conversation.** The backend currently uses fixed `customer-demo-001`. It does not yet implement authenticated customer isolation.
+**The key authenticates the Salesforce-to-API integration, not the customer in the conversation.** The current Agentforce connection still uses fixed `customer-demo-001`. The new verified API routes are not integrated with the org and do not independently authenticate people.
 
 ## Authorization and idempotency in the Flow
 
