@@ -22,7 +22,7 @@ def main() -> None:
     )
     args = parser.parse_args()
     signing_key = os.environ.get("AURORA_CUSTOMER_SESSION_SECRET", "")
-    print(  # noqa: T201 - explicit stdout-only demo token issuance
+    print(
         mint_demo_session(
             signing_key=signing_key,
             customer_ref=args.customer,

@@ -5,6 +5,7 @@ public token-issuing endpoint. Never let the LLM choose or mint these claims.
 """
 
 import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -49,10 +50,8 @@ def _b64decode(text: str) -> bytes:
     if not BASE64_URL.fullmatch(text):
         raise InvalidCustomerSession
     try:
-        raw = base64.b64decode(
-            text + "=" * (-len(text) % 4), altchars=b"-_", validate=True
-        )
-    except (ValueError, base64.binascii.Error) as error:
+        raw = base64.b64decode(text + "=" * (-len(text) % 4), altchars=b"-_", validate=True)
+    except (ValueError, binascii.Error) as error:
         raise InvalidCustomerSession from error
     if _b64encode(raw) != text:
         raise InvalidCustomerSession
@@ -118,12 +117,13 @@ def verify_customer_session(
     if not token or len(token) > TOKEN_MAX_LENGTH or token.count(".") != 1:
         raise InvalidCustomerSession
     payload, signature = token.split(".", maxsplit=1)
+    decoded_payload = _b64decode(payload)
     supplied = _b64decode(signature)
     expected = hmac.new(key, payload.encode("ascii"), hashlib.sha256).digest()
     if not hmac.compare_digest(supplied, expected):
         raise InvalidCustomerSession
     try:
-        claims = json.loads(_b64decode(payload), object_pairs_hook=_reject_duplicate_keys)
+        claims = json.loads(decoded_payload, object_pairs_hook=_reject_duplicate_keys)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
         raise InvalidCustomerSession from error
     if not isinstance(claims, dict) or claims.keys() != CLAIMS:

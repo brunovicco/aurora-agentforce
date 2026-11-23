@@ -177,8 +177,6 @@ def create_app(
         order_id: OrderId,
         customer: Annotated[VerifiedCustomer, Depends(verified_customer)],
     ) -> EligibilityResponse:
-        return eligibility_response(
-            authorized_order(order_id, customer_ref=customer.customer_ref)
-        )
+        return eligibility_response(authorized_order(order_id, customer_ref=customer.customer_ref))
 
     return app

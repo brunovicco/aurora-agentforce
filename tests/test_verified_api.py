@@ -14,7 +14,9 @@ VERIFIED_ROUTES = [
 LEGACY_ROUTES = ["/orders/{}", "/orders/{}/return-eligibility"]
 
 
-def session_headers(*, customer: str = "customer-demo-001", session: str = "s-01") -> dict[str, str]:
+def session_headers(
+    *, customer: str = "customer-demo-001", session: str = "s-01"
+) -> dict[str, str]:
     token = mint_demo_session(
         signing_key=TEST_SESSION_KEY,
         customer_ref=customer,
@@ -98,9 +100,7 @@ def test_expired_session_rejected_in_api() -> None:
         session_signing_key=TEST_SESSION_KEY,
     )
     with TestClient(app) as client:
-        assert client.get(
-            "/verified/orders/AUR-1001", headers=session_headers()
-        ).status_code == 401
+        assert client.get("/verified/orders/AUR-1001", headers=session_headers()).status_code == 401
 
 
 def test_revoked_session_rejected_in_api() -> None:
@@ -123,9 +123,7 @@ def test_verified_routes_fail_closed_without_session_signing_key(
     monkeypatch.delenv("AURORA_CUSTOMER_SESSION_SECRET", raising=False)
     app = create_app(api_key=TEST_API_KEY, clock=lambda: TODAY)
     with TestClient(app) as client:
-        response = client.get(
-            "/verified/orders/AUR-1001", headers=session_headers()
-        )
+        response = client.get("/verified/orders/AUR-1001", headers=session_headers())
         assert response.status_code == 503
         assert response.json() == {"detail": "Verified customer reads unavailable."}
 

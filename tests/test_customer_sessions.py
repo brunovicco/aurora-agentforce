@@ -50,9 +50,13 @@ def test_invalid_signature_key_rejected() -> None:
 
 def test_expired_and_future_issued_sessions_rejected() -> None:
     with pytest.raises(InvalidCustomerSession):
-        verify_customer_session(issue(), signing_key=TEST_SESSION_KEY, now=NOW + timedelta(minutes=5))
+        verify_customer_session(
+            issue(), signing_key=TEST_SESSION_KEY, now=NOW + timedelta(minutes=5)
+        )
     with pytest.raises(InvalidCustomerSession):
-        verify_customer_session(issue(), signing_key=TEST_SESSION_KEY, now=NOW - timedelta(seconds=1))
+        verify_customer_session(
+            issue(), signing_key=TEST_SESSION_KEY, now=NOW - timedelta(seconds=1)
+        )
 
 
 def test_revoked_session_is_rejected() -> None:
@@ -107,7 +111,9 @@ def test_utc_conversion_is_stable() -> None:
         session_id="s-02",
         now=offset_time,
     )
-    assert verify_customer_session(token, signing_key=TEST_SESSION_KEY, now=NOW).session_id == "s-02"
+    assert (
+        verify_customer_session(token, signing_key=TEST_SESSION_KEY, now=NOW).session_id == "s-02"
+    )
 
 
 def test_signature_cannot_be_reused_with_a_different_subject() -> None:
