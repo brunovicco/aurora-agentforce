@@ -10,6 +10,8 @@
         <members>AuroraBrokerBindingResolverTest</members>
         <members>AuroraVerifiedReadFacade</members>
         <members>AuroraVerifiedReadFacadeTest</members>
+        <members>AuroraAuthenticatedReadRuntime</members>
+        <members>AuroraAuthenticatedReadRuntimeTest</members>
         <name>ApexClass</name>
     </types>
     <version>68.0</version>

@@ -146,3 +146,5 @@ Existing Agentforce actions and Flow are unchanged.
 ### Verified action candidate
 
 The [phase 4 read facade](salesforce/VERIFIED-ACTIONS.md) exposes only business results or a generic unavailable outcome internally. No Agentforce action is activated.
+
+The phase 4 runtime composition requires an independent authenticated-session authorizer before any verified read; no native runtime authorizer is installed.

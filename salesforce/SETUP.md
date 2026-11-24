@@ -143,3 +143,5 @@ included. Do not expose the broker or activate candidate actions before
 validating the authenticated runtime binding in an isolated org.
 
 See [VERIFIED-ACTIONS.md](VERIFIED-ACTIONS.md) for the candidate read facade and activation gate. Add AuroraVerifiedReadFacadeTest to isolated Apex validation; do not activate the facade before authenticated runtime verification.
+
+Include AuroraAuthenticatedReadRuntimeTest in isolated validation. Its injected session authorizer is not an implementation of Salesforce AuthSession verification.

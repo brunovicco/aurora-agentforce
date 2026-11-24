@@ -146,3 +146,5 @@ pendentes. As ações Agentforce e o Flow existentes continuam inalterados.
 ### Ações verificadas candidatas
 
 A [fachada de leitura da fase 4](salesforce/VERIFIED-ACTIONS.md) devolve apenas dados de negócio ou indisponibilidade genérica. Nenhuma ação Agentforce foi ativada.
+
+A composição de runtime da fase 4 exige um autorizador independente de sessão autenticada antes de cada leitura; não há autorizador nativo instalado.
