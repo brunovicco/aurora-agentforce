@@ -36,7 +36,7 @@ class BindingStore(Protocol):
         now: datetime,
     ) -> BrokerBinding:
         """Register a trusted binding."""
-        ...
+        raise NotImplementedError
 
     def revoke(self, conversation_id: str) -> None:
         """Invalidate a binding."""
