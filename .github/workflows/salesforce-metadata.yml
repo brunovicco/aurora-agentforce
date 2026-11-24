@@ -20,12 +20,17 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Validate portal metadata
+        run: uv run python scripts/portal_prepare.py
       - name: Check Salesforce project and XML metadata
         shell: bash
         run: |
-          python3 - <<'PY'
+          uv run python - <<'PY'
           import json
-          import xml.etree.ElementTree as ET
+          from defusedxml import ElementTree as ET
           from pathlib import Path
 
           project = json.loads(Path('salesforce/sfdx-project.json').read_text())
@@ -34,7 +39,7 @@ jobs:
           xml_files = list(Path('salesforce').rglob('*.xml'))
           assert xml_files, 'No Salesforce metadata files found'
           for item in xml_files:
-              ET.parse(item)
+              ET.parse(item, forbid_dtd=True, forbid_entities=True, forbid_external=True)
           print(f'Validated Salesforce DX project and {len(xml_files)} XML files.')
           PY
 
