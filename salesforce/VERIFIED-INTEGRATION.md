@@ -34,8 +34,9 @@ contract both declare the two credentials as an AND requirement.
 6. Remove the legacy opt-in from the deployed backend. Validate the wrappers and Flow in an
    isolated org before activation; verify agent permissions and trace redaction.
 
-No channel binding, Salesforce wrapper, metadata migration or live org validation has been
-completed in this increment. Do not import the contract directly as an agent action if doing
+Phase 3 adds offline reference bindings and candidate internal Apex wrappers; see
+[TRUSTED-CHANNEL.md](TRUSTED-CHANNEL.md). Actual authenticated channel binding,
+metadata migration and live org validation remain pending. Do not import the contract directly as an agent action if doing
 so exposes the customer-session credential to the model.
 
 ## Acceptance matrix for org validation (not run)

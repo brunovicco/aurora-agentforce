@@ -8,9 +8,7 @@ from time import monotonic
 class BrokerRateLimit:
     """Global fixed-window request budget; no attacker-controlled bucket keys."""
 
-    def __init__(
-        self, limit: int = 120, *, clock: Callable[[], float] = monotonic
-    ) -> None:
+    def __init__(self, limit: int = 120, *, clock: Callable[[], float] = monotonic) -> None:
         """Configure the request budget per sixty-second window."""
         if limit < 1:
             raise ValueError("Broker request limit must be positive.")

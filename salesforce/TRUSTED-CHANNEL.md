@@ -1,53 +1,83 @@
-# Trusted channel adapter — reference boundary
+# Trusted channel adapter — phase 3 reference implementation
 
-This increment adds a Python reference resolver, not a deployed Salesforce adapter.
-The trusted channel must first authenticate a customer and establish a binding between
-the platform conversation, exact customer reference and signed session identifier.
-The resolver verifies that binding, including expiry and revocation, on every resolution.
+**Status:** offline Python reference and candidate internal Apex classes. No
+authenticated Salesforce channel, production deployment, or Apex compilation
+and execution in an org has been verified for this phase. Existing Agent Script
+and Case Flow still use the isolated legacy fixed-customer integration.
 
-The conversation identifier supplied to this resolver MUST come from trusted runtime
-context. It is not a bearer credential. Never expose a public lookup endpoint taking
-only a conversation ID, or accept a conversation ID supplied by an LLM or chat text.
+## Trust boundaries
 
-## Integration sequence
+1. A trusted external channel authenticates the customer and authorizes the actual
+   platform conversation. A conversation ID, ContactId, shared execution user or
+   Named Credential alone is not proof of customer identity.
+2. Trusted infrastructure registers the exact conversation, execution user,
+   customer and expiration using internal Python methods. No HTTP enrollment,
+   login or revocation endpoint is exposed.
+3. An explicitly configured scope callback must authorize the current caller's
+   conversation/user pair independently of the binding lookup. The reference
+   callback interface is not a channel authentication implementation.
+4. The private broker resolves the active binding and issues a signed short-lived
+   bearer session. The trusted transport injects it into the Orders API header,
+   never into agent reasoning inputs or outputs.
+5. The Orders API checks both credentials, signature, expiry, active binding
+   in broker mode, and ownership. Case creation still requires independent
+   approval and native confirmation; ownership evidence is not write permission.
 
-1. Channel authenticates the customer outside the agent.
-2. Trusted infrastructure establishes and stores the binding. The lookup is scoped
-   to the current authorized platform conversation, not to user-selected identifiers.
-3. Resolve the binding and validate signed customer claims before any action.
-4. Trusted transport injects the signed session in the verified API header.
-5. The API checks integration credentials, session and order ownership.
-6. Case creation still requires native confirmation and independent approval.
+## Components
 
-The identity-only Python resolver returns only the verified customer identity. The internal
-binding resolver is used by a trusted transport facade, which injects credentials into an
-allowlisted verified route after checking the current binding on every call. The facade is
-constructed by trusted runtime code and accepts only an operation and order ID at execution.
-Offline integration tests exercise the actual FastAPI endpoints through an injected transport;
-no public lookup or token relay endpoint is introduced.
-A future Salesforce wrapper must independently obtain the current trusted context,
-inject the credential without exposing it to the reasoning model or traces, and
-deny requests if any binding is absent or invalid.
+- Python trusted-channel resolver and allowlisted action transport: injected
+  runtime context and per-call resolution; offline integration tests exercise
+  the actual verified FastAPI routes.
+- Optional ContextBroker (in memory) or SQLiteBindingStore (local durable state).
+- AuroraVerifiedOrdersClient: fixed read-only callouts, typed strict responses,
+  order and Case-key validation through the existing AuroraOrders Named Credential.
+- AuroraTrustedContext and AuroraTrustedOrderActions: internal context boundary
+  and order-only facade.
+- AuroraBrokerBindingResolver: internal client using a separate candidate
+  AuroraContextBroker Named Credential.
 
-The resolver is dependency-injected. No production HTTP client, persistence, public issuance endpoint, native
-Salesforce identity provider or invocable Apex action is implemented. Tests use fictional
-in-memory bindings. Live org validation, durable revocation and channel-specific
-identity assurance remain necessary. Existing Agent Script and Flow remain legacy.
+Apex classes are not invocable, REST-exposed or granted to the agent. The
+trusted runtime wiring and Named Credential for the broker are not configured.
 
-## Internal Apex callout client (candidate, not compiled in an org)
+## Broker contract and configuration
 
-`AuroraVerifiedOrdersClient` implements three typed read-only callouts through
-`callout:AuroraOrders`. The existing Named Credential must supply the integration
-API key. The trusted caller supplies the signed session; the client does not
-authenticate a conversation or mint tokens. It accepts fixed operations, validates
-order IDs and token syntax, rejects non-200 and malformed or mismatched results,
-and returns generic errors without including response bodies or credentials.
+Inject a BindingStore, separate broker_api_key and explicit broker_scope into
+create_app. The broker is disabled by default; enabling it prohibits legacy
+reads. The integration key, signing secret and broker key must be distinct.
 
-The class deliberately has no InvocableMethod, AuraEnabled, REST resource or agent
-action exposure. Do not add any of those until trusted context resolution is wired.
-Do not grant new Apex class access to the agent as part of this increment.
+POST /v1/context/resolve requires X-Aurora-Broker-Key and JSON conversation_id
+and execution_user_id. A successful response includes conversation_id,
+execution_user_id, expires_at (UTC), revoked=false and session_token.
+Tokens expire within 300 seconds and no later than the binding expiry.
+Replacement/revocation invalidates previous sessions at the Orders API.
+The endpoint is intentionally excluded from the agent-facing OpenAPI contract.
 
-Use the isolated manifest only in a configured development org:
+Failures are generic: 401 credential, 404 binding/scope, 422 malformed request,
+429 rate limit, 503 scope or storage failure. Handled responses use no-store.
+The process-local global budget defaults to 120 well-formed requests per minute.
+Malformed requests are sanitized but not counted by this budget. Use private
+ingress, TLS, request-size limits and distributed admission controls for any
+real deployment. Shared credentials do not independently constrain a caller
+to its actual conversation: the scope callback must enforce that boundary.
+
+## Persistence and audit
+
+SQLite is optional; inject SQLiteBindingStore(Path(...)) instead of ContextBroker().
+Use an operator-created private directory (0700 on POSIX), restrictive file
+permissions and encryption where required. No bearer token or signing key is
+persisted. Opaque identifiers and expiration are stored; state changes and
+lifecycle events are transactional. The in-memory store loses state on restart
+and must not be shared across workers. SQLite is not a distributed identity store.
+
+SQLite records event types and timestamps, without customer/session identifiers.
+HTTP outcomes are logged with fixed event names; enable INFO for issuance
+events and use a protected sink. Neither trail is attributable or tamper-evident.
+Retention, rotation, access control and external trace redaction remain pending.
+Tokens are bearer credentials and can be replayed by a party possessing both
+required credentials until expiry or revocation. Revocation does not cancel
+already admitted requests. There is no proof-of-possession or key rotation.
+
+## Isolated Salesforce validation (not run)
 
 ```bash
 cd salesforce
@@ -57,108 +87,19 @@ sf project deploy validate --manifest manifest/aurora-verified-client.xml \
   --tests AuroraBrokerBindingResolverTest
 ```
 
-Check the org's supported API version and CLI options before running. The Apex
-mock tests are authored but not executed here. They cannot verify actual Named
-Credential injection, platform authentication or debug-log redaction. Validate
-those separately before exposing any action. Never deploy against real customer data.
+Verify supported API version and CLI options in the target org. Mock tests
+cannot prove real Named Credential injection, customer authentication or
+trace redaction. Before action/Flow migration, verify authenticated runtime
+scope, two distinct conversations, no fallback to legacy access, expiration,
+revocation, credential segregation, and logs/traces without secrets.
+Use synthetic data only. See [verified cutover requirements](VERIFIED-INTEGRATION.md).
 
-## Internal Salesforce context boundary
+## Residual risks and next phase
 
-The candidate Apex facade AuroraTrustedOrderActions accepts only an order ID per
-business method. AuroraTrustedContext requires an injected BindingResolver and
-a trusted conversation identifier at construction. It checks the exact conversation,
-current execution user, expiry, revocation and token syntax on every call. The
-backend remains responsible for signature validation and ownership. The execution
-user is NOT evidence of customer identity, particularly for shared service-agent users.
+A real channel (for example an authenticated Experience Cloud integration)
+must establish identity and bind it to the current conversation. Do not infer
+authentication from linked MessagingSession variables. No production scope
+implementation, credential provisioning, org permission validation or
+Agentforce/Flow migration is included. Do not activate the candidate classes
+as agent actions before these prerequisites are verified.
 
-No concrete production resolver is installed. An authenticated Experience Cloud
-channel with Credential-Based User Verification is one candidate to investigate;
-linked MessagingSession variables are system-populated identifiers, not proof of
-authentication. A trusted issuer must independently establish the binding and ensure
-that it is current for the actual conversation. Do not bind the constructor to
-arbitrary action input or grant the agent access to tokens or resolver configuration.
-The classes are internal, not invocable, and the isolated manifest is unchanged
-in deployment scope (candidate classes only). The new mock tests are not compiled
-or executed in a Salesforce org.
-
-References:
-- https://developer.salesforce.com/docs/ai/agentforce/guide/ascript-ref-variables.html
-- https://developer.salesforce.com/blogs/2025/05/best-practices-for-building-agentforce-apex-actions
-
-## Concrete broker client (candidate)
-
-AuroraBrokerBindingResolver calls a separate Named Credential, AuroraContextBroker,
-using POST /v1/context/resolve. It checks exact conversation and execution-user
-correspondence, expiry, revocation and token syntax. It rejects non-200 and malformed
-responses without returning their diagnostic details. No bearer token is stored in
-Salesforce custom fields. The existing AuroraOrders credential is not reused.
-
-The external broker must authenticate the calling infrastructure and independently
-authorize the current conversation. The request identifiers are correlation values,
-not proof of authentication; a shared Salesforce user or integration credential
-alone is insufficient. The broker must derive its answer from an authenticated
-channel binding, not mint a session merely because these identifiers were supplied.
-No actual broker endpoint, Named Credential configuration, durable storage, identity
-provider, permission grant or runtime context wiring is included here. This client
-must remain internal until those controls are implemented and validated.
-
-Expected broker contract: POST JSON conversation_id and execution_user_id;
-200 JSON conversation_id, execution_user_id, expires_at (UTC date-time),
-revoked (boolean), session_token (signed Aurora session). Deny unavailable,
-unauthorized, expired or revoked bindings with non-200. Never log session_token.
-The backend independently validates the token. Mock tests do not establish
-Salesforce credential injection, authentication or trace redaction.
-
-Reference: https://developer.salesforce.com/docs/platform/apex-dev/references/apex-dev/apex-callouts-named-credentials.html
-
-## Python broker reference service
-
-The existing FastAPI app can optionally receive an internal ContextBroker instance
-and a separate broker_api_key. Registration and revocation are Python-only methods
-for trusted infrastructure; there is no public enrollment or login route. The
-candidate Apex Named Credential must inject X-Aurora-Broker-Key. The broker
-resolve endpoint is absent unless explicitly configured, returns short-lived
-signed tokens only for registered exact conversation/user pairs, and uses
-Cache-Control: no-store on successful replies. Broker mode disables legacy reads
-and requires every verified API session to remain active in the same store.
-Replacing or revoking a binding invalidates previously issued tokens.
-
-This is a process-local reference store, not durable persistence. Tokens are not
-stored. Do not use multiple workers or enable the endpoint in a public channel.
-A shared broker credential authorizes trusted infrastructure, not a human or
-a conversation: the caller must independently enforce current conversation
-scope. A compromised broker caller could request other registered pairs.
-No actual channel authentication, durable audit store, external storage or
-Salesforce credential configuration is implemented. The previous description
-of an absent broker endpoint refers to the earlier Apex-only increment.
-
-## Durable local reference store
-
-Inject SQLiteBindingStore(Path(...)) instead of ContextBroker() into create_app
-to persist binding state and minimal lifecycle events across process restarts.
-Use an operator-created private directory (0700 on POSIX), restrictive file
-permissions, encrypted volume where required, and synthetic data only. The
-adapter stores opaque identifiers and expiry, not bearer tokens or signing keys.
-Registration/replacement and revocation update state and audit events in the same
-transaction. Resolution and active-session checks record outcomes and timestamps.
-The audit table contains no conversation, user, customer or session identifiers;
-it is a minimal operational trail, not a tamper-evident or attributable audit log.
-No automatic startup configuration or public registration endpoint is added.
-SQLite is a local reference, not a distributed production identity store.
-The shared broker caller still must enforce independently authenticated
-conversation scope. Credential failures and HTTP-level issuance are not yet
-audited by this store. Production rate limiting, retention, access controls,
-and channel validation remain pending.
-
-## Broker hardening
-
-Broker mode now requires an explicit trusted scope policy callback, independent of
-the binding lookup. It must enforce the actual authenticated caller's permitted
-conversation/user pair; a permissive callback is suitable only for isolated tests.
-A bounded process-local global fixed-window budget defaults to 120 resolution
-attempts per minute, including invalid credentials for well-formed requests.
-This is not distributed rate limiting and does not replace ingress controls.
-HTTP broker outcomes are logged as fixed event names without identifiers, request
-bodies, tokens or credentials. Enable INFO for issuance events and route logs
-to a protected sink. SQLite failures become generic 503 denials. The scope
-callback and credential provisioning still require real runtime integration.

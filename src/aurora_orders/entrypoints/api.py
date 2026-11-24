@@ -4,10 +4,13 @@ import logging
 import os
 import secrets
 from collections.abc import Callable
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Path, Response, Security
+from fastapi import Depends, FastAPI, HTTPException, Path, Request, Response, Security
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -138,6 +141,19 @@ def create_app(
         name="X-Aurora-Customer-Session", scheme_name="CustomerSession", auto_error=False
     )
     app = FastAPI(title="Aurora Orders Demo", version="0.2.0")
+
+    @app.exception_handler(RequestValidationError)
+    async def safe_validation_error(
+        request: Request, error: RequestValidationError
+    ) -> Response:
+        if request.url.path == "/v1/context/resolve":
+            BROKER_LOG.warning("broker_invalid_request")
+            return JSONResponse(
+                status_code=422,
+                content={"detail": "Context unavailable."},
+                headers={"Cache-Control": "no-store"},
+            )
+        return await request_validation_exception_handler(request, error)
 
     def authenticate(key: Annotated[str | None, Security(integration_header)]) -> None:
         if key is None or not secrets.compare_digest(key.encode(), configured_key.encode()):
@@ -276,10 +292,14 @@ def create_app(
             no_store = {"Cache-Control": "no-store"}
             if not limiter.admit():
                 BROKER_LOG.warning("broker_rate_limited")
-                raise HTTPException(status_code=429, detail="Context unavailable.", headers=no_store)
+                raise HTTPException(
+                    status_code=429, detail="Context unavailable.", headers=no_store
+                )
             if key is None or not secrets.compare_digest(key.encode(), broker_key.encode()):
                 BROKER_LOG.warning("broker_credential_denied")
-                raise HTTPException(status_code=401, detail="Context unavailable.", headers=no_store)
+                raise HTTPException(
+                    status_code=401, detail="Context unavailable.", headers=no_store
+                )
             now = session_clock()
             try:
                 if not scope(request.conversation_id, request.execution_user_id):
@@ -288,18 +308,29 @@ def create_app(
                         status_code=404, detail="Context unavailable.", headers=no_store
                     )
                 binding = broker.resolve(request.conversation_id, request.execution_user_id, now)
-            except BindingStoreUnavailable as error:
-                BROKER_LOG.error("broker_store_unavailable")
+            except HTTPException:
+                raise
+            except Exception as error:
+                BROKER_LOG.error("broker_context_unavailable")
                 raise HTTPException(
                     status_code=503, detail="Context unavailable.", headers=no_store
                 ) from error
-            if binding is None or binding.customer.session_id in revoked_session_ids:
+            if (
+                binding is None
+                or binding.conversation_id != request.conversation_id
+                or binding.execution_user_id != request.execution_user_id
+                or binding.customer.session_id in revoked_session_ids
+            ):
                 BROKER_LOG.warning("broker_binding_denied")
-                raise HTTPException(status_code=404, detail="Context unavailable.", headers=no_store)
-            ttl = min(300, int((binding.expires_at - now).total_seconds()))
+                raise HTTPException(
+                    status_code=404, detail="Context unavailable.", headers=no_store
+                )
+            ttl = min(300, int(binding.expires_at.timestamp()) - int(now.timestamp()))
             if ttl < 1:
                 BROKER_LOG.warning("broker_binding_denied")
-                raise HTTPException(status_code=404, detail="Context unavailable.", headers=no_store)
+                raise HTTPException(
+                    status_code=404, detail="Context unavailable.", headers=no_store
+                )
             response.headers["Cache-Control"] = "no-store"
             token = mint_demo_session(
                 signing_key=session_secret,
@@ -312,7 +343,7 @@ def create_app(
             return BrokerResponse(
                 conversation_id=binding.conversation_id,
                 execution_user_id=binding.execution_user_id,
-                expires_at=now + timedelta(seconds=ttl),
+                expires_at=datetime.fromtimestamp(int(now.timestamp()) + ttl, UTC),
                 revoked=False,
                 session_token=token,
             )

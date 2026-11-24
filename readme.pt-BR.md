@@ -61,11 +61,11 @@ O controle de aprovação protege o caminho de Cases, mas **não substitui auten
 
 **Não exponha esse agente como canal público de atendimento.** A publicação do repositório disponibiliza o código, não um serviço seguro para clientes reais.
 
-### Nova camada de autorização por cliente na API (branch de desenvolvimento)
+### Camada de autorização por cliente na API
 
 As rotas `/verified/orders/{order_id}` e `/verified/orders/{order_id}/return-eligibility` exigem **duas credenciais independentes**: `X-API-Key` para a integração e `X-Aurora-Customer-Session` para o contexto individual. O backend valida assinatura HMAC, emissor, destinatário, validade temporal e revogação quando fornecida, então compara a identidade assinada com o dono do pedido. Pedidos inexistentes e pertencentes a outro cliente têm a mesma resposta 404. Um parâmetro ou mensagem do usuário não pode trocar a identidade assinada.
 
-**Esse avanço protege as novas rotas da API; não conclui autenticação no Salesforce.** O script de emissão produz apenas sessões artificiais para testes, sem autenticar pessoas. Ainda é necessário integrar um canal confiável que identifique o consumidor e injete o contexto fora do controle do LLM, além de adicionar revogação persistente. As ações Agentforce e o Flow atuais **não** propagam essa identidade.
+**Esse avanço protege as novas rotas da API; não conclui autenticação no Salesforce.** O script de emissão produz apenas sessões artificiais para testes, sem autenticar pessoas. Ainda é necessário integrar um canal confiável que identifique o consumidor e injete o contexto fora do controle do LLM, além de configurar a revogação persistente disponível no broker opcional. As ações Agentforce e o Flow atuais **não** propagam essa identidade.
 
 As rotas legadas `/orders/...` ficam desabilitadas por padrão (403). Para reproduzir a demonstração existente, é preciso habilitar `AURORA_ENABLE_UNVERIFIED_DEMO_READS=1` **somente em laboratório isolado com dados fictícios**. As novas rotas retornam 503 caso `AURORA_CUSTOMER_SESSION_SECRET` não seja configurada.
 
@@ -136,16 +136,9 @@ O projeto adapta seletivamente o [harness Python do autor](https://github.com/br
 
 ### Referência de canal confiável
 
-O [resolvedor de canal confiável](salesforce/TRUSTED-CHANNEL.md) valida vínculos de conversa previamente autenticados, fora do modelo, e injeta o contexto assinado por um transporte de referência com rotas permitidas. É uma referência em Python, não um adaptador Salesforce implantado.
-
-O cliente de callouts Apex está disponível como candidato isolado no [guia de canal confiável](salesforce/TRUSTED-CHANNEL.md); não está exposto como ação nem validado em uma org.
-
-A fachada Apex interna revalida o vínculo confiável a cada operação; ainda não há resolvedor de produção nem ação invocável instalada.
-
-O cliente Apex interno do broker de contexto está disponível como candidato; o serviço autenticado e o vínculo de execução ainda não foram implementados.
-
-O broker Python opcional permite registrar, resolver e revogar vínculos previamente autenticados. O armazenamento é local ao processo, não persistente.
-
-Um armazenamento SQLite opcional preserva vínculos e eventos mínimos de auditoria após reinicializações; consulte o guia de canal confiável para controles e limitações.
-
-O broker exige política explícita de escopo, com controle local de requisições e logs de resultado sem segredos.
+A [referência da fase 3](salesforce/TRUSTED-CHANNEL.md) inclui resolvedor e
+transporte Python, broker privado opcional com política explícita de escopo,
+armazenamento em memória ou SQLite, rate limiting local, auditoria mínima e
+clientes Apex internos candidatos. Autenticação real do canal, vínculo de
+execução Salesforce, configuração de credenciais e validação na org permanecem
+pendentes. As ações Agentforce e o Flow existentes continuam inalterados.

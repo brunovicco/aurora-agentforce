@@ -19,8 +19,9 @@ def test_scope_policy_rate_limit_and_safe_audit(caplog: pytest.LogCaptureFixture
         session_clock=lambda: NOW,
         context_broker=broker,
         broker_api_key=BROKER_KEY,
-        broker_scope=lambda conversation, user: conversation == "conversation-1"
-        and user == "user-1",
+        broker_scope=lambda conversation, user: (
+            conversation == "conversation-1" and user == "user-1"
+        ),
         broker_rate_limit=BrokerRateLimit(3),
         allow_unverified_demo_reads=False,
     )
@@ -92,3 +93,42 @@ def test_scope_required() -> None:
             broker_api_key=BROKER_KEY,
             allow_unverified_demo_reads=False,
         )
+
+
+def test_broker_malformed_request_does_not_echo_input() -> None:
+    broker = ContextBroker()
+    app = create_app(
+        api_key=TEST_API_KEY,
+        session_signing_key=TEST_SESSION_KEY,
+        context_broker=broker,
+        broker_api_key=BROKER_KEY,
+        broker_scope=lambda conversation, user: False,
+        allow_unverified_demo_reads=False,
+    )
+    with TestClient(app) as client:
+        response = client.post(
+            ROUTE,
+            json={**PAYLOAD, "session_token": "synthetic-sensitive-value"},
+            headers={"X-Aurora-Broker-Key": BROKER_KEY},
+        )
+        assert response.status_code == 422
+        assert response.json() == {"detail": "Context unavailable."}
+        assert response.headers["Cache-Control"] == "no-store"
+
+
+def test_scope_failure_is_generic_denial() -> None:
+    def broken_scope(conversation: str, user: str) -> bool:
+        raise RuntimeError("private scope diagnostic")
+
+    app = create_app(
+        api_key=TEST_API_KEY,
+        session_signing_key=TEST_SESSION_KEY,
+        context_broker=ContextBroker(),
+        broker_api_key=BROKER_KEY,
+        broker_scope=broken_scope,
+        allow_unverified_demo_reads=False,
+    )
+    with TestClient(app) as client:
+        response = client.post(ROUTE, json=PAYLOAD, headers={"X-Aurora-Broker-Key": BROKER_KEY})
+        assert response.status_code == 503
+        assert response.json() == {"detail": "Context unavailable."}
