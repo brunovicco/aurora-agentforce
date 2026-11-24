@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "afb00f5d-9af0-4e49-b0cb-f52484c3be19",
+  "appPageId" : "b526abf8-025e-4f4d-8d1d-76cdc92c3981",
+  "configurationTags" : [ ],
+  "devName" : "Forgot_Password",
+  "id" : "41aacda9-99a0-4236-ae3a-85151dfb956e",
+  "label" : "Esqueci minha senha",
+  "routeType" : "forgot-password",
+  "type" : "route",
+  "urlPrefix" : "ForgotPassword"
+}

@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "69b5e956-dbc1-457b-ac63-da59c53ab6f1",
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "configurationTags" : [ ],
+  "devName" : "Enablement_Program_Text_Lesson",
+  "id" : "945cb729-3540-49f5-9f22-acd76716206b",
+  "label" : "Enablement Program Lesson",
+  "routeType" : "enablement-program-text-lesson",
+  "type" : "route",
+  "urlPrefix" : "enablement-program-text-lesson"
+}

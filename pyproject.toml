@@ -13,6 +13,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "bandit[toml]>=1.8",
+    "defusedxml>=0.7.1",
     "httpx>=0.28",
     "jsonschema>=4.23",
     "mypy>=1.16",
@@ -52,15 +53,15 @@ python_version = "3.14"
 strict = true
 plugins = ["pydantic.mypy"]
 show_error_codes = true
-mypy_path = "src"
+mypy_path = "src,stubs"
 
 [tool.pytest.ini_options]
-addopts = "--strict-config --strict-markers --cov=src/aurora_orders --cov-report=term-missing"
+addopts = "--strict-config --strict-markers --cov=src/aurora_orders --cov=scripts.portal_prepare --cov-report=term-missing"
 testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["src/aurora_orders"]
+source = ["src/aurora_orders", "scripts.portal_prepare"]
 
 [tool.coverage.report]
 show_missing = true

@@ -142,3 +142,7 @@ armazenamento em memória ou SQLite, rate limiting local, auditoria mínima e
 clientes Apex internos candidatos. Autenticação real do canal, vínculo de
 execução Salesforce, configuração de credenciais e validação na org permanecem
 pendentes. As ações Agentforce e o Flow existentes continuam inalterados.
+
+## Portal de clientes (Experience Cloud)
+
+O [baseline versionado do portal](salesforce/PORTAL-SETUP.md) inclui metadados sanitizados, renderização específica da org e validação de integridade antes do dry-run. Tanto a configuração inicial quanto a revisão com nomes UTF-8 corrigidos passaram na validação de metadados (3/3) na Developer Edition existente. Autenticação do cliente, isolamento entre contas e integração Agentforce não foram comprovados. Não conecte o agente legado ao portal.
