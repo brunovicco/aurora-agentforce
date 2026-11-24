@@ -32,9 +32,9 @@ References:
 - https://developer.salesforce.com/sample-apps/agent-script-recipes/action-configuration/advanced-input-bindings
 - https://developer.salesforce.com/blogs/2025/05/best-practices-for-building-agentforce-apex-actions
 
-Run the isolated manifest validation described in TRUSTED-CHANNEL.md, adding
-AuroraVerifiedReadFacadeTest to the specified test classes. No org validation
-has been performed for this candidate.
+The isolated manifest passed check-only validation in the development org on
+2026-11-24 (11 components, 20 Apex mock tests, no failures). See
+[recorded evidence](VERIFIED-READS-VALIDATION.md).
 
 ## Authenticated runtime composition
 
@@ -60,10 +60,9 @@ https://help.salesforce.com/s/articleView?id=ai.service_agent_context_variables.
 In the development org, confirm whether the authenticated session can be
 resolved reliably in the actual action execution context; verify two distinct
 authenticated users, guest denial, logout/expiry, and conversation substitution.
-Capture evidence without logging credentials. Add AuroraAuthenticatedReadRuntimeTest
-to the isolated manifest validation test list. These mock tests are authored,
-not executed in an org. No concrete AuthSession lookup, permission grants,
-or invocable actions are included.
+Capture evidence without logging credentials. AuroraAuthenticatedReadRuntimeTest
+was included in the successful check-only validation. No concrete AuthSession
+lookup, permission grants, or invocable actions are included.
 
 ## Development org evidence gate
 

@@ -140,7 +140,7 @@ The [phase 3 reference](salesforce/TRUSTED-CHANNEL.md) includes the Python
 resolver and transport, optional private broker with explicit scope policy,
 in-memory or SQLite lifecycle store, local rate limiting, minimal audit,
 and candidate internal Apex clients. No production channel authentication,
-Salesforce runtime binding, Named Credential setup or org validation is complete.
+Salesforce runtime binding or Named Credential setup is complete.
 Existing Agentforce actions and Flow are unchanged.
 
 ### Verified action candidate
@@ -149,4 +149,4 @@ The [phase 4 read facade](salesforce/VERIFIED-ACTIONS.md) exposes only business 
 
 The phase 4 runtime composition requires an independent authenticated-session authorizer before any verified read; no native runtime authorizer is installed.
 
-The [development org runbook](salesforce/VERIFIED-READS-VALIDATION.md) provides check-only Apex validation and explicit runtime acceptance criteria; no live results are claimed.
+The [development org runbook](salesforce/VERIFIED-READS-VALIDATION.md) records successful Salesforce development-org check-only validation (11 components, 20/20 Apex mock tests) on November 24, 2026. Authenticated channel acceptance is still NOT RUN; no verified action is activated.

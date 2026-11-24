@@ -140,8 +140,7 @@ A [referência da fase 3](salesforce/TRUSTED-CHANNEL.md) inclui resolvedor e
 transporte Python, broker privado opcional com política explícita de escopo,
 armazenamento em memória ou SQLite, rate limiting local, auditoria mínima e
 clientes Apex internos candidatos. Autenticação real do canal, vínculo de
-execução Salesforce, configuração de credenciais e validação na org permanecem
-pendentes. As ações Agentforce e o Flow existentes continuam inalterados.
+execução Salesforce e configuração de credenciais permanecem pendentes. As ações Agentforce e o Flow existentes continuam inalterados.
 
 ### Ações verificadas candidatas
 
@@ -149,4 +148,4 @@ A [fachada de leitura da fase 4](salesforce/VERIFIED-ACTIONS.md) devolve apenas 
 
 A composição de runtime da fase 4 exige um autorizador independente de sessão autenticada antes de cada leitura; não há autorizador nativo instalado.
 
-O [roteiro de validação na org](salesforce/VERIFIED-READS-VALIDATION.md) inclui compilação sem implantação e critérios explícitos de aceitação; nenhum resultado real foi registrado.
+O [roteiro de validação na org](salesforce/VERIFIED-READS-VALIDATION.md) registra a validação sem implantação na org de desenvolvimento em 24/11/2026: 11 componentes e 20/20 testes Apex com mocks aprovados. A aceitação do canal autenticado ainda não foi executada; nenhuma ação verificada foi ativada.

@@ -1,7 +1,7 @@
 # Verified reads — development org acceptance runbook
 
-Status: planned, not executed in an org. Use synthetic accounts and orders only.
-This runbook is a gate, not evidence that the gate has passed.
+Status: check-only Apex validation passed; authenticated channel acceptance remains NOT RUN.
+Use synthetic accounts and orders only. The activation gate has not passed.
 
 ## 1. Check-only compilation and Apex mock tests
 
@@ -20,6 +20,28 @@ sf project deploy report --job-id <id> --target-org aurora-dev to inspect the
 final result. Require successful terminal deployment validation, all specified
 test classes executed and no failures. Record only sanitized aggregate results.
 A successful check-only deployment is not evidence of authenticated agent runtime.
+
+### Recorded evidence — 2026-11-24
+
+Operator-reported Salesforce CLI output from the phase 4 branch at commit
+`730e694fe9ccb8175a14a3527762591c69031c56` (branch head confirmed; local
+commit inferred from the reported up-to-date checkout, not separately printed).
+
+| Check | Result |
+| --- | --- |
+| Metadata API | 68.0 |
+| Validation mode | dry-run |
+| Terminal status | Succeeded |
+| Components validated | 11/11 |
+| Apex mock tests | 20 passed, 0 failed |
+| Total elapsed | 6.69 seconds |
+| Reported test time | 2110 ms |
+
+Evidence source: sanitized operator-provided terminal output. Org username,
+org ID and deployment ID intentionally omitted. No permanent deployment,
+actual HTTP callouts, Named Credential injection, authenticated channel
+execution or Agentforce action activation was demonstrated.
+All 16 runtime acceptance scenarios remain NOT RUN.
 
 ## 2. Establish the actual trust boundary
 

@@ -146,4 +146,4 @@ See [VERIFIED-ACTIONS.md](VERIFIED-ACTIONS.md) for the candidate read facade and
 
 Include AuroraAuthenticatedReadRuntimeTest in isolated validation. Its injected session authorizer is not an implementation of Salesforce AuthSession verification.
 
-Use [VERIFIED-READS-VALIDATION.md](VERIFIED-READS-VALIDATION.md) for the complete check-only command and runtime acceptance gate. No org evidence exists yet for the candidate read actions.
+Use [VERIFIED-READS-VALIDATION.md](VERIFIED-READS-VALIDATION.md) for the complete check-only command and runtime acceptance gate. On 2026-11-24 the candidate manifest passed development-org dry-run validation (11 components, 20 Apex mock tests, zero failures). Authenticated runtime acceptance remains NOT RUN.
