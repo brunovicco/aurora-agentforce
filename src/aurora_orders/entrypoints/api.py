@@ -143,9 +143,7 @@ def create_app(
     app = FastAPI(title="Aurora Orders Demo", version="0.2.0")
 
     @app.exception_handler(RequestValidationError)
-    async def safe_validation_error(
-        request: Request, error: RequestValidationError
-    ) -> Response:
+    async def safe_validation_error(request: Request, error: RequestValidationError) -> Response:
         if request.url.path == "/v1/context/resolve":
             BROKER_LOG.warning("broker_invalid_request")
             return JSONResponse(
