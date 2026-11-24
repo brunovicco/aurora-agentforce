@@ -20,3 +20,7 @@ These are UI reductions, not authorization controls. Other standard routes, glob
 4. Verify two distinct external users, guest denial, cross-account denial and logout before attaching any authenticated messaging channel.
 
 Future increments: permission audit, reproducible customer provisioning, navigation minimization, authenticated messaging and trusted runtime identity evidence.
+
+## Remaining route inventory
+
+[portal-route-inventory.json](portal-route-inventory.json) records the 55 route filenames from the candidate Git tree. A regression test checks the exact inventory (normalizing Unicode filenames to NFC). This is not an effective-access report. Prioritize direct Case creation/support, generic record creation and detail/list pages, flows/OmniScript, user/profile/account management, files, reports/dashboards and collaboration routes in the external-profile audit. Retain login, password recovery and error routes until their dependencies and behavior are validated.
