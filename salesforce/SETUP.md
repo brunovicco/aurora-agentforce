@@ -144,4 +144,4 @@ validating the authenticated runtime binding in an isolated org.
 
 ## Experience Cloud customer portal
 
-See [portal setup and validation](PORTAL-SETUP.md) for the sanitized baseline and dry-run-only workflow. The portal is separate from the verified-action candidate. No runtime authorization or fresh-org portability is established by metadata validation.
+See [portal setup and validation](PORTAL-SETUP.md) for the sanitized baseline and dry-run-only workflow. The portal is separate from the verified-action candidate. The corrected UTF-8 revision passed the metadata dry-run (3/3, API 68.0). No runtime authorization or fresh-org portability is established by metadata validation.

@@ -46,4 +46,17 @@ The dry-run wrapper requires PORTAL_SENDER, PORTAL_ADMIN and PORTAL_OWNER in the
 
 ## Revision after initial validation
 
-34 filenames were restored from mojibake to UTF-8 without changing their Git blobs. The initial 3/3 Salesforce result predates those renames; repeat rendering and the dry-run before making any new compatibility claim. The local verifier compares rendered bytes with the current template, not the older validated package. Regression tests are in `tests/test_portal_prepare.py`. Run `uv run pytest tests/test_portal_prepare.py --no-cov` for targeted checks and `uv run python scripts/quality_gate.py` for the full gate.
+34 filenames were restored from mojibake to UTF-8 without changing their Git blobs. The initial 3/3 Salesforce result predates those renames; the corrected revision was subsequently validated as recorded below. The local verifier compares rendered bytes with the current template, not the older validated package. Regression tests are in `tests/test_portal_prepare.py`. Run `uv run pytest tests/test_portal_prepare.py --no-cov` for targeted checks and `uv run python scripts/quality_gate.py` for the full gate.
+
+## Corrected revision evidence (November 24, 2026)
+
+Validated local checkout: `fac9596f8a7646cb6cafeb129768d863d6a20c1f` (fast-forward to the remote branch, as shown in the CLI transcript).
+
+- Locked dependency synchronization succeeded.
+- 117 JSON files and 55 route references passed static validation.
+- Rendered metadata integrity verified before invoking Salesforce CLI.
+- Metadata API v68.0 dry-run: Succeeded, 3/3 components (CustomSite, ExperienceBundle, Network), 14.73 seconds.
+- Apex tests and source tracking skipped; no permanent deployment performed.
+- GitHub Actions for the same revision: quality, Salesforce DX metadata checks and CodeQL workflows succeeded. Pytest: 144 passed (12 portal cases); combined coverage 95.25%; portal validator coverage 90% (rounded); Mypy: no issues in 30 source files.
+
+This is existing-org metadata compatibility and offline regression evidence, not proof of secure customer login, account isolation, fresh-org provisioning, or authenticated Agentforce execution. The standard template surfaces and permissions still require review before any customer-facing activation. No legacy agent connection is authorized by this result.

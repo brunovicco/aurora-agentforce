@@ -145,4 +145,4 @@ Existing Agentforce actions and Flow are unchanged.
 
 ## Customer portal (Experience Cloud)
 
-The [versioned portal baseline](salesforce/PORTAL-SETUP.md) includes sanitized metadata, org-specific rendering and integrity checks before a dry-run. The initial configuration passed metadata validation (3/3); the revision with corrected UTF-8 filenames requires a fresh dry-run. Customer authentication, account isolation and Agentforce integration remain unverified. Do not attach the legacy agent to the portal.
+The [versioned portal baseline](salesforce/PORTAL-SETUP.md) includes sanitized metadata, org-specific rendering and integrity checks before a dry-run. Both the initial configuration and the revision with corrected UTF-8 filenames passed metadata validation (3/3) in the existing Developer Edition. Customer authentication, account isolation and Agentforce integration remain unverified. Do not attach the legacy agent to the portal.
