@@ -110,3 +110,24 @@ The backend independently validates the token. Mock tests do not establish
 Salesforce credential injection, authentication or trace redaction.
 
 Reference: https://developer.salesforce.com/docs/platform/apex-dev/references/apex-dev/apex-callouts-named-credentials.html
+
+## Python broker reference service
+
+The existing FastAPI app can optionally receive an internal ContextBroker instance
+and a separate broker_api_key. Registration and revocation are Python-only methods
+for trusted infrastructure; there is no public enrollment or login route. The
+candidate Apex Named Credential must inject X-Aurora-Broker-Key. The broker
+resolve endpoint is absent unless explicitly configured, returns short-lived
+signed tokens only for registered exact conversation/user pairs, and uses
+Cache-Control: no-store on successful replies. Broker mode disables legacy reads
+and requires every verified API session to remain active in the same store.
+Replacing or revoking a binding invalidates previously issued tokens.
+
+This is a process-local reference store, not durable persistence. Tokens are not
+stored. Do not use multiple workers or enable the endpoint in a public channel.
+A shared broker credential authorizes trusted infrastructure, not a human or
+a conversation: the caller must independently enforce current conversation
+scope. A compromised broker caller could request other registered pairs.
+No actual channel authentication, durable audit store, external storage or
+Salesforce credential configuration is implemented. The previous description
+of an absent broker endpoint refers to the earlier Apex-only increment.

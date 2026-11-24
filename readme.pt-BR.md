@@ -143,3 +143,5 @@ O cliente de callouts Apex está disponível como candidato isolado no [guia de 
 A fachada Apex interna revalida o vínculo confiável a cada operação; ainda não há resolvedor de produção nem ação invocável instalada.
 
 O cliente Apex interno do broker de contexto está disponível como candidato; o serviço autenticado e o vínculo de execução ainda não foram implementados.
+
+O broker Python opcional permite registrar, resolver e revogar vínculos previamente autenticados. O armazenamento é local ao processo, não persistente.

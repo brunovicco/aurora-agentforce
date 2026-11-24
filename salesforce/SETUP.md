@@ -141,3 +141,5 @@ The internal Apex client has a separate candidate manifest, with mock tests and 
 The candidate manifest also contains the internal context facade and its mock tests. A concrete authenticated channel binding resolver is still required before activation.
 
 The isolated manifest includes AuroraBrokerBindingResolver and mock tests. AuroraContextBroker is an unconfigured separate Named Credential; do not grant access or activate actions until a trusted broker and authenticated runtime binding exist.
+
+The optional reference broker is described in TRUSTED-CHANNEL.md. It requires an injected store and separate X-Aurora-Broker-Key, not a public enrollment endpoint.

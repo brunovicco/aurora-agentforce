@@ -143,3 +143,5 @@ The internal Apex callout client is available as an isolated candidate in the [t
 The internal Apex context facade re-resolves a trusted binding on every operation; no production binding resolver or invocable action is installed.
 
 A concrete internal Apex broker client is available as a candidate; the authenticated broker service and runtime binding are not implemented.
+
+An opt-in Python broker reference now supports pre-authenticated registration, resolution and revocation. It is process-local and not a production identity provider.
