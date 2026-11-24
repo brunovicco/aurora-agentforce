@@ -4,10 +4,9 @@ import os
 import secrets
 from collections.abc import Callable
 from datetime import UTC, date, datetime
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Security
-from fastapi.openapi.utils import get_openapi
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, ConfigDict
 
@@ -209,14 +208,10 @@ def create_app(
             request_key=case_request_key(order),
         )
 
-    def verified_openapi() -> dict[str, Any]:
-        if app.openapi_schema is None:
-            schema = get_openapi(title=app.title, version=app.version, routes=app.routes)
-            for path, operations in schema["paths"].items():
-                if path.startswith("/verified/"):
-                    operations["get"]["security"] = [{"ApiKey": [], "CustomerSession": []}]
-            app.openapi_schema = schema
-        return app.openapi_schema
-
-    app.openapi = verified_openapi
+    # FastAPI generates separate security alternatives; verified routes require both.
+    schema = app.openapi()
+    for path, operations in schema["paths"].items():
+        if path.startswith("/verified/"):
+            operations["get"]["security"] = [{"ApiKey": [], "CustomerSession": []}]
+    app.openapi_schema = schema
     return app
