@@ -136,4 +136,4 @@ O projeto adapta seletivamente o [harness Python do autor](https://github.com/br
 
 ### Referência de canal confiável
 
-O [resolvedor de canal confiável](salesforce/TRUSTED-CHANNEL.md) valida vínculos de conversa previamente autenticados, fora do modelo. É uma referência em Python, não um adaptador Salesforce implantado.
+O [resolvedor de canal confiável](salesforce/TRUSTED-CHANNEL.md) valida vínculos de conversa previamente autenticados, fora do modelo, e injeta o contexto assinado por um transporte de referência com rotas permitidas. É uma referência em Python, não um adaptador Salesforce implantado.

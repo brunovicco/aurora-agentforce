@@ -23,14 +23,14 @@ class ChannelBinding:
 type BindingResolver = Callable[[str], ChannelBinding | None]
 
 
-def resolve_channel_customer(
+def resolve_channel_binding(
     conversation_id: str,
     *,
     resolver: BindingResolver,
     signing_key: str,
     now: datetime,
     revoked_session_ids: frozenset[str] = frozenset(),
-) -> VerifiedCustomer:
+) -> ChannelBinding:
     """Fail closed unless the current binding matches verified signed claims."""
     if not conversation_id or len(conversation_id) > 128:
         raise InvalidCustomerSession
@@ -45,4 +45,22 @@ def resolve_channel_customer(
     )
     if customer != binding.customer:
         raise InvalidCustomerSession
-    return customer
+    return binding
+
+
+def resolve_channel_customer(
+    conversation_id: str,
+    *,
+    resolver: BindingResolver,
+    signing_key: str,
+    now: datetime,
+    revoked_session_ids: frozenset[str] = frozenset(),
+) -> VerifiedCustomer:
+    """Expose only identity to callers that do not need transport credentials."""
+    return resolve_channel_binding(
+        conversation_id,
+        resolver=resolver,
+        signing_key=signing_key,
+        now=now,
+        revoked_session_ids=revoked_session_ids,
+    ).customer

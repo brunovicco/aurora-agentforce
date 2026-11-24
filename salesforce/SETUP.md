@@ -134,4 +134,4 @@ This project uses **fictional data** and does not perform real refunds.
 
 ## Trusted channel reference boundary
 
-See [trusted channel integration](TRUSTED-CHANNEL.md) for the offline resolver and required platform binding. No Salesforce action or Flow migration is included.
+See [trusted channel integration](TRUSTED-CHANNEL.md) for the offline resolver, reference transport and required platform binding. No Salesforce action or Flow migration is included.

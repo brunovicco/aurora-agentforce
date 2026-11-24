@@ -136,4 +136,4 @@ Aurora selectively adapts the author's [Python engineering harness](https://gith
 
 ### Trusted channel reference
 
-The [trusted channel resolver](salesforce/TRUSTED-CHANNEL.md) validates pre-authenticated conversation bindings outside the model. It is a Python reference boundary, not a deployed Salesforce adapter.
+The [trusted channel resolver](salesforce/TRUSTED-CHANNEL.md) validates pre-authenticated conversation bindings outside the model and injects signed context through an allowlisted reference transport. It is a Python reference boundary, not a deployed Salesforce adapter.

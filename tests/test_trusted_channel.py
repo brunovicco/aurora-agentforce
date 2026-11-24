@@ -54,7 +54,9 @@ def test_missing_or_wrong_conversation_is_denied(conversation: str) -> None:
         )
 
 
-@pytest.mark.parametrize("mode", ["expired", "revoked", "tampered", "wrong-customer", "wrong-session"])
+@pytest.mark.parametrize(
+    "mode", ["expired", "revoked", "tampered", "wrong-customer", "wrong-session"]
+)
 def test_invalid_binding_is_denied(mode: str) -> None:
     first = binding()
     customer = first.customer
