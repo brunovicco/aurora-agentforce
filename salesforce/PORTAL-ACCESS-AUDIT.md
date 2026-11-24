@@ -32,3 +32,7 @@ Use two separate private browser sessions for the synthetic external users and a
 | Logout then repeat business request | Denial or reauthentication |
 
 For each scenario record date, candidate commit, actor label, operation, expected/actual outcome, evidence reference and pass/fail/not-run. Redact identities and record IDs. UI hiding, static metadata checks and successful dry-run are not runtime access evidence. Do not enable Agentforce until the separate trusted-channel and verified-action gates are met.
+
+## Read-only customer reconciliation
+
+From the repository root, run `bash scripts/sf-audit-portal-customers.sh aurora-dev` against the existing synthetic development org. The query uses fixed synthetic account names and returns only labels and reconciliation statuses to the terminal. Raw query JSON is stored in a private temporary directory and removed on exit. The script does not create or update records, assign permissions, verify passwords or establish session isolation. Missing, duplicate or mismatched users are blockers; review manually before provisioning. This is the first stage of the provisioning harness, not an account creation utility.
