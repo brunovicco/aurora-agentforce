@@ -30,6 +30,33 @@ inject the credential without exposing it to the reasoning model or traces, and
 deny requests if any binding is absent or invalid.
 
 The resolver is dependency-injected. No production HTTP client, persistence, public issuance endpoint, native
-Salesforce identity provider or Apex action is implemented. Tests use fictional
+Salesforce identity provider or invocable Apex action is implemented. Tests use fictional
 in-memory bindings. Live org validation, durable revocation and channel-specific
 identity assurance remain necessary. Existing Agent Script and Flow remain legacy.
+
+## Internal Apex callout client (candidate, not compiled in an org)
+
+`AuroraVerifiedOrdersClient` implements three typed read-only callouts through
+`callout:AuroraOrders`. The existing Named Credential must supply the integration
+API key. The trusted caller supplies the signed session; the client does not
+authenticate a conversation or mint tokens. It accepts fixed operations, validates
+order IDs and token syntax, rejects non-200 and malformed or mismatched results,
+and returns generic errors without including response bodies or credentials.
+
+The class deliberately has no InvocableMethod, AuraEnabled, REST resource or agent
+action exposure. Do not add any of those until trusted context resolution is wired.
+Do not grant new Apex class access to the agent as part of this increment.
+
+Use the isolated manifest only in a configured development org:
+
+```bash
+cd salesforce
+sf project deploy validate --manifest manifest/aurora-verified-client.xml \
+  --target-org aurora-dev --test-level RunSpecifiedTests \
+  --tests AuroraVerifiedOrdersClientTest
+```
+
+Check the org's supported API version and CLI options before running. The Apex
+mock tests are authored but not executed here. They cannot verify actual Named
+Credential injection, platform authentication or debug-log redaction. Validate
+those separately before exposing any action. Never deploy against real customer data.

@@ -137,3 +137,5 @@ Aurora selectively adapts the author's [Python engineering harness](https://gith
 ### Trusted channel reference
 
 The [trusted channel resolver](salesforce/TRUSTED-CHANNEL.md) validates pre-authenticated conversation bindings outside the model and injects signed context through an allowlisted reference transport. It is a Python reference boundary, not a deployed Salesforce adapter.
+
+The internal Apex callout client is available as an isolated candidate in the [trusted channel guide](salesforce/TRUSTED-CHANNEL.md); it is not exposed as an agent action or validated in an org.
