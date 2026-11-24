@@ -64,3 +64,8 @@ Capture evidence without logging credentials. Add AuroraAuthenticatedReadRuntime
 to the isolated manifest validation test list. These mock tests are authored,
 not executed in an org. No concrete AuthSession lookup, permission grants,
 or invocable actions are included.
+
+## Development org evidence gate
+
+Use [the validation runbook](VERIFIED-READS-VALIDATION.md) and the check-only
+script from the repository root. All runtime acceptance scenarios are NOT RUN.

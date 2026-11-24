@@ -80,12 +80,10 @@ already admitted requests. There is no proof-of-possession or key rotation.
 ## Isolated Salesforce validation (not run)
 
 ```bash
-cd salesforce
-sf project deploy validate --manifest manifest/aurora-verified-client.xml \
-  --target-org aurora-dev --test-level RunSpecifiedTests \
-  --tests AuroraVerifiedOrdersClientTest --tests AuroraTrustedContextTest \
-  --tests AuroraBrokerBindingResolverTest
+bash scripts/sf-validate-verified-reads.sh aurora-dev
 ```
+
+Run from the repository root. See [the development org acceptance runbook](VERIFIED-READS-VALIDATION.md).
 
 Verify supported API version and CLI options in the target org. Mock tests
 cannot prove real Named Credential injection, customer authentication or
