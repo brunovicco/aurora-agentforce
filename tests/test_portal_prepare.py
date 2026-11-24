@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 from defusedxml.common import DTDForbidden
-
 from scripts import portal_prepare as portal
 
 
