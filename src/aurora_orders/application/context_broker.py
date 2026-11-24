@@ -40,17 +40,17 @@ class BindingStore(Protocol):
 
     def revoke(self, conversation_id: str) -> None:
         """Invalidate a binding."""
-        ...
+        raise NotImplementedError
 
     def resolve(
         self, conversation_id: str, execution_user_id: str, now: datetime
     ) -> BrokerBinding | None:
         """Resolve a scoped binding."""
-        ...
+        raise NotImplementedError
 
     def is_active(self, customer: VerifiedCustomer, now: datetime) -> bool:
         """Check current session authorization."""
-        ...
+        raise NotImplementedError
 
 
 def new_binding(
