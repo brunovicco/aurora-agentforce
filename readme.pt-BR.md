@@ -55,11 +55,38 @@ Detalhes, comandos e evidências no [guia Salesforce](salesforce/SETUP.md) e nos
 
 ## Limitação conhecida: falta autenticar o consumidor
 
-**As ações de leitura ainda não verificam a identidade individual do cliente.** A API utiliza o cliente fictício fixo `customer-demo-001`. Em um preview real, informar o pedido `AUR-1003` permitiu consultar produto e status `shipped` sem confirmar quem estava solicitando.
+**As ações de leitura existentes no Agentforce ainda não verificam a identidade individual do cliente.** As rotas legadas da API utilizam o cliente fictício fixo `customer-demo-001`. Em um preview real, informar o pedido `AUR-1003` permitiu consultar produto e status `shipped` sem confirmar quem estava solicitando.
 
 O controle de aprovação protege o caminho de Cases, mas **não substitui autenticação** para consultas de status e devolução. Um ID de sessão/contato ou um `customer_ref` fornecido pelo LLM também não prova a propriedade do pedido.
 
 **Não exponha esse agente como canal público de atendimento.** A publicação do repositório disponibiliza o código, não um serviço seguro para clientes reais.
+
+### Nova camada de autorização por cliente na API (branch de desenvolvimento)
+
+As rotas `/verified/orders/{order_id}` e `/verified/orders/{order_id}/return-eligibility` exigem **duas credenciais independentes**: `X-API-Key` para a integração e `X-Aurora-Customer-Session` para o contexto individual. O backend valida assinatura HMAC, emissor, destinatário, validade temporal e revogação quando fornecida, então compara a identidade assinada com o dono do pedido. Pedidos inexistentes e pertencentes a outro cliente têm a mesma resposta 404. Um parâmetro ou mensagem do usuário não pode trocar a identidade assinada.
+
+**Esse avanço protege as novas rotas da API; não conclui autenticação no Salesforce.** O script de emissão produz apenas sessões artificiais para testes, sem autenticar pessoas. Ainda é necessário integrar um canal confiável que identifique o consumidor e injete o contexto fora do controle do LLM, além de adicionar revogação persistente. As ações Agentforce e o Flow atuais **não** propagam essa identidade.
+
+As rotas legadas `/orders/...` ficam desabilitadas por padrão (403). Para reproduzir a demonstração existente, é preciso habilitar `AURORA_ENABLE_UNVERIFIED_DEMO_READS=1` **somente em laboratório isolado com dados fictícios**. As novas rotas retornam 503 caso `AURORA_CUSTOMER_SESSION_SECRET` não seja configurada.
+
+Para testar a nova rota localmente, configure duas chaves distintas na sessão que inicia a API:
+
+```bash
+export AURORA_API_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export AURORA_CUSTOMER_SESSION_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+uv run uvicorn aurora_orders.entrypoints.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+No segundo terminal, com as mesmas variáveis exportadas:
+
+```bash
+CUSTOMER_SESSION="$(uv run python scripts/mint_demo_session.py --customer customer-demo-001)"
+curl -H "X-API-Key: $AURORA_API_KEY" \
+     -H "X-Aurora-Customer-Session: $CUSTOMER_SESSION" \
+     http://127.0.0.1:8000/verified/orders/AUR-1001
+```
+
+Os tokens expiram em cinco minutos; a emissão local não é fluxo de login. Não enviar tokens no chat nem como parâmetros controlados pelo agente. O conjunto de revogação injetável é apenas para testes, não um armazenamento distribuído.
 
 ## Executar a API de pedidos localmente
 
@@ -68,6 +95,7 @@ Requisitos: **Python 3.14** e [uv](https://docs.astral.sh/uv/).
 ```bash
 uv sync --frozen --all-groups
 export AURORA_API_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export AURORA_ENABLE_UNVERIFIED_DEMO_READS=1  # somente demo legado isolado
 uv run uvicorn aurora_orders.entrypoints.api:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
@@ -93,7 +121,7 @@ Execute o quality gate Python com `uv run python scripts/quality_gate.py`. A int
 
 ## Próximos passos
 
-1. **Autenticar o consumidor** e verificar o vínculo cliente–pedido nas duas ações de leitura **e no Flow**.
+1. Integrar um **provedor confiável de identidade** às ações Agentforce e ao Flow, com contexto assinado fora do controle do LLM; migrar as consultas para as rotas verificadas.
 2. Vincular as aprovações e as chaves de idempotência à identidade verificada, substituindo `customer-demo-001`.
 3. Validar implantação reproduzível em uma org limpa, sem versionar credenciais nem depender de túnel temporário.
 4. Executar e documentar os **12 cenários de avaliação**, ampliar os testes adversariais e gravar uma demonstração reproduzível.

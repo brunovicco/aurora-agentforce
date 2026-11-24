@@ -55,11 +55,38 @@ For implementation details and test commands, see [Salesforce setup and evidence
 
 ## Known limitation: customer identity is not verified
 
-**Read actions do not yet authenticate the individual customer.** The demo API is restricted to one fixed synthetic customer (`customer-demo-001`). In a real Agentforce preview, asking for `AUR-1003` revealed its product and `shipped` status without verifying who was asking.
+**The existing Agentforce actions do not yet authenticate the individual customer.** Their legacy API routes are limited to one fixed synthetic customer (`customer-demo-001`), not a verified person. In a real Agentforce preview, asking for `AUR-1003` revealed its product and `shipped` status without verifying who was asking.
 
 The independent approval guard protects the Case path, but it **does not replace customer authentication** for status and return lookups. Neither a messaging/contact ID nor an LLM-supplied `customer_ref` should be trusted as proof of order ownership.
 
 **Do not expose the agent as a public customer-support channel.** Making the source repository public does not mean the agent is safe for real customers.
+
+### Next increment: signed customer context for backend reads (branch)
+
+The Python API now also has two customer-scoped endpoints, `/verified/orders/{order_id}` and `/verified/orders/{order_id}/return-eligibility`. They require **both** the Salesforce-to-API `X-API-Key` and a short-lived `X-Aurora-Customer-Session` token. The server verifies an HMAC signature, audience, issuer, issue/expiry times and (if supplied to the app) a revocation set, then checks the signed customer reference against order ownership. Unknown orders and other customers' orders return the same 404 response. Caller-provided query parameters cannot override the signed identity.
+
+**This is a backend authorization increment, not an end-to-end Salesforce authentication implementation.** The included token-minting script simulates a *trusted channel* for synthetic tests; it does not authenticate a human. No token issuance endpoint is exposed. In a real channel, a separate trusted identity/session provider must verify the customer and inject context outside the model's control, with key custody and durable revocation. Neither the existing Agentforce actions nor the Case Flow currently propagate this context. They still rely on the original fixed-customer integration and must not be described as secure customer-facing workflows.
+
+For fail-closed defaults, the two legacy `/orders/...` routes now respond with 403 unless `AURORA_ENABLE_UNVERIFIED_DEMO_READS=1` is explicitly set. That opt-in is **only for an isolated, fictional demonstration** and is not a security control. The new verified routes respond with 503 when `AURORA_CUSTOMER_SESSION_SECRET` is absent.
+
+**Local verified-read example** (use different secrets; never commit them):
+
+```bash
+export AURORA_API_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export AURORA_CUSTOMER_SESSION_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+uv run uvicorn aurora_orders.entrypoints.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+In a second terminal with the same two variables, generate an *artificial* test session:
+
+```bash
+CUSTOMER_SESSION="$(uv run python scripts/mint_demo_session.py --customer customer-demo-001)"
+curl -H "X-API-Key: $AURORA_API_KEY" \
+     -H "X-Aurora-Customer-Session: $CUSTOMER_SESSION" \
+     http://127.0.0.1:8000/verified/orders/AUR-1001
+```
+
+Tokens expire after five minutes. This is not a login flow. In-memory revocation injection is for tests, not a distributed session store. Do not forward the token through a chat message or an LLM-generated tool argument.
 
 ## Run the orders API locally
 
@@ -68,6 +95,7 @@ Requirements: **Python 3.14** and [uv](https://docs.astral.sh/uv/).
 ```bash
 uv sync --frozen --all-groups
 export AURORA_API_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export AURORA_ENABLE_UNVERIFIED_DEMO_READS=1  # isolated legacy Salesforce demo ONLY
 uv run uvicorn aurora_orders.entrypoints.api:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
@@ -93,7 +121,7 @@ Run the Python quality gate using `uv run python scripts/quality_gate.py`. Sales
 
 ## What's next
 
-1. Authenticate the **real customer** and enforce customer-to-order authorization in both read actions and the Case Flow.
+1. Integrate a **trusted customer identity provider** with Agentforce actions and the Case Flow; pass signed context outside LLM control and switch Salesforce reads to the verified endpoints.
 2. Bind approvals and idempotency keys to verified identity instead of `customer-demo-001`.
 3. Validate repeatable setup in a clean Salesforce org without committing secrets or relying on a temporary tunnel.
 4. Execute and report all **12 evaluation scenarios**, strengthen adversarial tests, and record a reproducible demo.
