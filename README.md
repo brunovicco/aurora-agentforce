@@ -133,3 +133,7 @@ Run the Python quality gate using `uv run python scripts/quality_gate.py`. Sales
 Aurora selectively adapts the author's [Python engineering harness](https://github.com/brunovicco/codex-python-engineering-harness/tree/e9e297456573d216f070a41a7cdaa108dd599c5b). The return policy is fictional, not legal advice or an actual commercial policy.
 
 **License:** [MIT](LICENSE).
+
+### Trusted channel reference
+
+The [trusted channel resolver](salesforce/TRUSTED-CHANNEL.md) validates pre-authenticated conversation bindings outside the model. It is a Python reference boundary, not a deployed Salesforce adapter.

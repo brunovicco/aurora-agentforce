@@ -133,3 +133,7 @@ Execute o quality gate Python com `uv run python scripts/quality_gate.py`. A int
 O projeto adapta seletivamente o [harness Python do autor](https://github.com/brunovicco/codex-python-engineering-harness/tree/e9e297456573d216f070a41a7cdaa108dd599c5b). A política de devolução é fictícia; não representa orientação jurídica nem uma política comercial real.
 
 **Licença:** [MIT](LICENSE).
+
+### Referência de canal confiável
+
+O [resolvedor de canal confiável](salesforce/TRUSTED-CHANNEL.md) valida vínculos de conversa previamente autenticados, fora do modelo. É uma referência em Python, não um adaptador Salesforce implantado.

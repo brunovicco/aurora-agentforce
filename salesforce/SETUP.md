@@ -131,3 +131,7 @@ This separates integration authentication from customer authentication. The appr
 5. Execute and report all [12 Agentforce evaluation scenarios](../evals/scenarios.json), including negative tests, action traces, and latencies; record a reproducible demo.
 
 This project uses **fictional data** and does not perform real refunds.
+
+## Trusted channel reference boundary
+
+See [trusted channel integration](TRUSTED-CHANNEL.md) for the offline resolver and required platform binding. No Salesforce action or Flow migration is included.
