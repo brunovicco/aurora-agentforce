@@ -36,3 +36,7 @@ For each scenario record date, candidate commit, actor label, operation, expecte
 ## Read-only customer reconciliation
 
 From the repository root, run `bash scripts/sf-audit-portal-customers.sh aurora-dev` against the existing synthetic development org. The query uses fixed synthetic account names and returns only labels and reconciliation statuses to the terminal. Raw query JSON is stored in a private temporary directory and removed on exit. The script does not create or update records, assign permissions, verify passwords or establish session isolation. Missing, duplicate or mismatched users are blockers; review manually before provisioning. This is the first stage of the provisioning harness, not an account creation utility.
+
+## Offline permission evidence reviewer
+
+Run `uv run python scripts/portal_permission_review.py /private/path/evidence.json` against manually normalized evidence. Each of the three synthetic actors supplies `groups_present`, `sources_complete`, and `object_grants` (rows with object, read, create, update, delete, view_all, modify_all; all flags boolean). Include grants from profile-owned permission sets and direct assignments. Group-derived grants and muting require separate resolution. No absence of a grant proves denial. This tool does not collect Salesforce data or inspect FLS, sharing, system permissions or effective group access. Never include IDs or credentials.
