@@ -23,6 +23,10 @@ The feature branch introduces `/verified/orders/{order_id}` and `/verified/order
 
 Next steps for a **real** Salesforce integration: authenticate the consumer via a trusted provider/channel, propagate a short-lived context through a server-controlled integration (not chat or LLM parameters), validate it for **both** read operations and the Flow, scope Case approval/idempotency keys to the verified customer, implement durable revocation and document org validation evidence. The original Flow remains unchanged on this branch to avoid pretending these controls are already wired.
 
+## Phase 2 candidate contract
+
+The verified backend now derives the customer-scoped Case request key from the authorized order. See [verified integration and cutover requirements](VERIFIED-INTEGRATION.md). The current Salesforce actions and Flow have not been migrated or deployed for phase 2.
+
 ## Connect the Orders API
 
 The local Python service requires an `AURORA_API_KEY` of at least 32 characters and validates the `X-API-Key` header. Use the tested [OpenAPI 3.0.3 contract](openapi.json) for the Salesforce External Service.

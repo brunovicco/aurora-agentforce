@@ -44,6 +44,14 @@ class EligibilityResponse(BaseModel):
     evaluated_on: date
 
 
+class CaseAuthorizationResponse(BaseModel):
+    """Ownership evidence for a trusted Salesforce action, not approval to write."""
+
+    model_config = ConfigDict(extra="forbid")
+    order_id: str
+    request_key: str
+
+
 def utc_today() -> date:
     """Use UTC consistently for calendar-day policy calculations."""
     return datetime.now(UTC).date()
@@ -180,5 +188,21 @@ def create_app(
         customer: Annotated[VerifiedCustomer, Depends(verified_customer)],
     ) -> EligibilityResponse:
         return eligibility_response(authorized_order(order_id, customer_ref=customer.customer_ref))
+
+    @app.get(
+        "/verified/orders/{order_id}/case-authorization",
+        operation_id="authorizeVerifiedCaseRequest",
+        response_model=CaseAuthorizationResponse,
+        dependencies=[Depends(authenticate)],
+    )
+    def authorize_case_request(
+        order_id: OrderId,
+        customer: Annotated[VerifiedCustomer, Depends(verified_customer)],
+    ) -> CaseAuthorizationResponse:
+        order = authorized_order(order_id, customer_ref=customer.customer_ref)
+        return CaseAuthorizationResponse(
+            order_id=order.order_id,
+            request_key=f"{order.customer_ref}:{order.order_id}:post-sale",
+        )
 
     return app
