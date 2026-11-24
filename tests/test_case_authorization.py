@@ -69,7 +69,8 @@ def test_case_key_is_stable_across_sessions_and_not_agent_controlled(gateway: Te
         headers=session_headers(session="another-session"),
         params={"customer_ref": "customer-demo-002", "request_key": "forged"},
     )
-    assert first.json() == second.json() == {
+    assert first.json() == second.json()
+    assert first.json() == {
         "order_id": "AUR-1001",
         "request_key": "customer-demo-001:AUR-1001:post-sale",
     }
