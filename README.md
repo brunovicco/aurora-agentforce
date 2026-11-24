@@ -142,3 +142,7 @@ in-memory or SQLite lifecycle store, local rate limiting, minimal audit,
 and candidate internal Apex clients. No production channel authentication,
 Salesforce runtime binding, Named Credential setup or org validation is complete.
 Existing Agentforce actions and Flow are unchanged.
+
+## Customer portal (Experience Cloud)
+
+The [versioned portal baseline](salesforce/PORTAL-SETUP.md) includes sanitized metadata, org-specific rendering and integrity checks before a dry-run. The initial configuration passed metadata validation (3/3); the revision with corrected UTF-8 filenames requires a fresh dry-run. Customer authentication, account isolation and Agentforce integration remain unverified. Do not attach the legacy agent to the portal.

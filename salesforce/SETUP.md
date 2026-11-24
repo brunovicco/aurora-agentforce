@@ -141,3 +141,7 @@ The candidate AuroraContextBroker Named Credential is unconfigured. No agent
 class access, production identity integration or action/Flow migration is
 included. Do not expose the broker or activate candidate actions before
 validating the authenticated runtime binding in an isolated org.
+
+## Experience Cloud customer portal
+
+See [portal setup and validation](PORTAL-SETUP.md) for the sanitized baseline and dry-run-only workflow. The portal is separate from the verified-action candidate. No runtime authorization or fresh-org portability is established by metadata validation.

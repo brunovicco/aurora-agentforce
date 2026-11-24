@@ -43,3 +43,7 @@ development org. It does not establish fresh-org portability,
 runtime authentication or customer isolation.
 
 The dry-run wrapper requires PORTAL_SENDER, PORTAL_ADMIN and PORTAL_OWNER in the environment. It compares the rendered file inventory and contents with the template and expected substitutions before invoking Salesforce CLI. This is a local integrity check, not a signed artifact or protection against concurrent filesystem modification.
+
+## Revision after initial validation
+
+34 filenames were restored from mojibake to UTF-8 without changing their Git blobs. The initial 3/3 Salesforce result predates those renames; repeat rendering and the dry-run before making any new compatibility claim. The local verifier compares rendered bytes with the current template, not the older validated package. Regression tests are in `tests/test_portal_prepare.py`. Run `uv run pytest tests/test_portal_prepare.py --no-cov` for targeted checks and `uv run python scripts/quality_gate.py` for the full gate.
