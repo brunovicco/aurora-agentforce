@@ -4,6 +4,7 @@ import secrets
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Lock
+from typing import Protocol
 
 from aurora_orders.application.customer_sessions import OPAQUE_ID, VerifiedCustomer
 
@@ -16,6 +17,63 @@ class BrokerBinding:
     execution_user_id: str
     customer: VerifiedCustomer
     expires_at: datetime
+
+
+class BindingStore(Protocol):
+    """Lifecycle contract for the in-memory and durable broker stores."""
+
+    def register(
+        self,
+        *,
+        conversation_id: str,
+        execution_user_id: str,
+        customer_ref: str,
+        expires_at: datetime,
+        now: datetime,
+    ) -> BrokerBinding:
+        """Register a trusted binding."""
+        ...
+
+    def revoke(self, conversation_id: str) -> None:
+        """Invalidate a binding."""
+        ...
+
+    def resolve(
+        self, conversation_id: str, execution_user_id: str, now: datetime
+    ) -> BrokerBinding | None:
+        """Resolve a scoped binding."""
+        ...
+
+    def is_active(self, customer: VerifiedCustomer, now: datetime) -> bool:
+        """Check current session authorization."""
+        ...
+
+
+def new_binding(
+    *,
+    conversation_id: str,
+    execution_user_id: str,
+    customer_ref: str,
+    expires_at: datetime,
+    now: datetime,
+) -> BrokerBinding:
+    """Validate trusted registration and allocate a new session identifier."""
+    if (
+        not all(
+            OPAQUE_ID.fullmatch(value)
+            for value in (conversation_id, execution_user_id, customer_ref)
+        )
+        or expires_at.tzinfo is None
+        or now.tzinfo is None
+        or expires_at <= now
+    ):
+        raise ValueError("Invalid trusted binding.")
+    return BrokerBinding(
+        conversation_id,
+        execution_user_id,
+        VerifiedCustomer(customer_ref, secrets.token_hex(24)),
+        expires_at,
+    )
 
 
 class ContextBroker:
@@ -36,21 +94,12 @@ class ContextBroker:
         now: datetime,
     ) -> BrokerBinding:
         """Register a pre-authenticated binding, replacing any previous session."""
-        if (
-            not all(
-                OPAQUE_ID.fullmatch(value)
-                for value in (conversation_id, execution_user_id, customer_ref)
-            )
-            or expires_at.tzinfo is None
-            or now.tzinfo is None
-            or expires_at <= now
-        ):
-            raise ValueError("Invalid trusted binding.")
-        binding = BrokerBinding(
-            conversation_id,
-            execution_user_id,
-            VerifiedCustomer(customer_ref, secrets.token_hex(24)),
-            expires_at,
+        binding = new_binding(
+            conversation_id=conversation_id,
+            execution_user_id=execution_user_id,
+            customer_ref=customer_ref,
+            expires_at=expires_at,
+            now=now,
         )
         with self._lock:
             self._bindings[conversation_id] = binding

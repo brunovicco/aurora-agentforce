@@ -143,3 +143,5 @@ The candidate manifest also contains the internal context facade and its mock te
 The isolated manifest includes AuroraBrokerBindingResolver and mock tests. AuroraContextBroker is an unconfigured separate Named Credential; do not grant access or activate actions until a trusted broker and authenticated runtime binding exist.
 
 The optional reference broker is described in TRUSTED-CHANNEL.md. It requires an injected store and separate X-Aurora-Broker-Key, not a public enrollment endpoint.
+
+The broker supports an injected SQLite binding store for a local reference deployment. See TRUSTED-CHANNEL.md for private directory requirements and audit limitations.

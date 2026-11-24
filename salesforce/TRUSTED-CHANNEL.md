@@ -131,3 +131,21 @@ scope. A compromised broker caller could request other registered pairs.
 No actual channel authentication, durable audit store, external storage or
 Salesforce credential configuration is implemented. The previous description
 of an absent broker endpoint refers to the earlier Apex-only increment.
+
+## Durable local reference store
+
+Inject SQLiteBindingStore(Path(...)) instead of ContextBroker() into create_app
+to persist binding state and minimal lifecycle events across process restarts.
+Use an operator-created private directory (0700 on POSIX), restrictive file
+permissions, encrypted volume where required, and synthetic data only. The
+adapter stores opaque identifiers and expiry, not bearer tokens or signing keys.
+Registration/replacement and revocation update state and audit events in the same
+transaction. Resolution and active-session checks record outcomes and timestamps.
+The audit table contains no conversation, user, customer or session identifiers;
+it is a minimal operational trail, not a tamper-evident or attributable audit log.
+No automatic startup configuration or public registration endpoint is added.
+SQLite is a local reference, not a distributed production identity store.
+The shared broker caller still must enforce independently authenticated
+conversation scope. Credential failures and HTTP-level issuance are not yet
+audited by this store. Production rate limiting, retention, access controls,
+and channel validation remain pending.

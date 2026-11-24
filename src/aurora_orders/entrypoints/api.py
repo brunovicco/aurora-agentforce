@@ -12,11 +12,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from aurora_orders.adapters.demo_orders import DEMO_CUSTOMER_REF, demo_orders
 from aurora_orders.application.case_keys import case_request_key
-from aurora_orders.application.context_broker import ContextBroker
+from aurora_orders.application.context_broker import BindingStore
 from aurora_orders.application.customer_sessions import (
     InvalidCustomerSession,
-    mint_demo_session,
     VerifiedCustomer,
+    mint_demo_session,
     validate_signing_key,
     verify_customer_session,
 )
@@ -91,7 +91,7 @@ def create_app(
     session_signing_key: str | None = None,
     revoked_session_ids: frozenset[str] = frozenset(),
     allow_unverified_demo_reads: bool | None = None,
-    context_broker: ContextBroker | None = None,
+    context_broker: BindingStore | None = None,
     broker_api_key: str | None = None,
 ) -> FastAPI:
     """Compose the demo; unverified legacy reads are disabled unless opted in."""

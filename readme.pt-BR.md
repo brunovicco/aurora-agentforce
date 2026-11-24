@@ -145,3 +145,5 @@ A fachada Apex interna revalida o vínculo confiável a cada operação; ainda n
 O cliente Apex interno do broker de contexto está disponível como candidato; o serviço autenticado e o vínculo de execução ainda não foram implementados.
 
 O broker Python opcional permite registrar, resolver e revogar vínculos previamente autenticados. O armazenamento é local ao processo, não persistente.
+
+Um armazenamento SQLite opcional preserva vínculos e eventos mínimos de auditoria após reinicializações; consulte o guia de canal confiável para controles e limitações.

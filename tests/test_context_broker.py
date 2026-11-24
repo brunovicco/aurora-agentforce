@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 from fastapi.testclient import TestClient
 
-from aurora_orders.application.context_broker import ContextBroker
+from aurora_orders.application.context_broker import BindingStore, ContextBroker
 from aurora_orders.entrypoints.api import create_app
 from tests.conftest import NOW, TEST_API_KEY, TEST_SESSION_KEY, TODAY
 from tests.test_verified_api import session_headers
@@ -13,7 +13,7 @@ ROUTE = "/v1/context/resolve"
 PAYLOAD = {"conversation_id": "conversation-1", "execution_user_id": "user-1"}
 
 
-def register(broker: ContextBroker, customer: str = "customer-demo-001") -> None:
+def register(broker: BindingStore, customer: str = "customer-demo-001") -> None:
     broker.register(
         conversation_id="conversation-1",
         execution_user_id="user-1",
@@ -23,7 +23,7 @@ def register(broker: ContextBroker, customer: str = "customer-demo-001") -> None
     )
 
 
-def make_client(broker: ContextBroker) -> TestClient:
+def make_client(broker: BindingStore) -> TestClient:
     return TestClient(
         create_app(
             api_key=TEST_API_KEY,
@@ -57,9 +57,8 @@ def test_broker_issue_scope_replace_and_revoke() -> None:
         assert client.get("/verified/orders/AUR-9001", headers=second).status_code == 200
         broker.revoke("conversation-1")
         assert client.get("/verified/orders/AUR-9001", headers=second).status_code == 401
-        assert client.post(
-            ROUTE, json=PAYLOAD, headers={"X-Aurora-Broker-Key": BROKER_KEY}
-        ).status_code == 404
+        result = client.post(ROUTE, json=PAYLOAD, headers={"X-Aurora-Broker-Key": BROKER_KEY})
+        assert result.status_code == 404
 
 
 def test_broker_credentials_and_scope() -> None:
@@ -67,19 +66,17 @@ def test_broker_credentials_and_scope() -> None:
     register(broker)
     with make_client(broker) as client:
         for key in ("", TEST_API_KEY, TEST_SESSION_KEY):
-            assert client.post(
-                ROUTE, json=PAYLOAD, headers={"X-Aurora-Broker-Key": key}
-            ).status_code == 401
+            result = client.post(ROUTE, json=PAYLOAD, headers={"X-Aurora-Broker-Key": key})
+            assert result.status_code == 401
         for payload in (
             {**PAYLOAD, "execution_user_id": "user-2"},
             {**PAYLOAD, "conversation_id": "conversation-2"},
         ):
-            assert client.post(
+            result = client.post(
                 ROUTE, json=payload, headers={"X-Aurora-Broker-Key": BROKER_KEY}
-            ).status_code == 404
-        assert client.get(
-            "/verified/orders/AUR-1001", headers=session_headers()
-        ).status_code == 401
+            )
+            assert result.status_code == 404
+        assert client.get("/verified/orders/AUR-1001", headers=session_headers()).status_code == 401
         assert ROUTE not in client.get("/openapi.json").json()["paths"]
 
 
@@ -93,7 +90,7 @@ def test_broker_expiry_and_invalid_registration() -> None:
             execution_user_id="user-1",
             customer_ref="invalid customer",
             expires_at=NOW,
-            now=NOW
+            now=NOW,
         )
 
 
