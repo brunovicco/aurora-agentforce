@@ -142,3 +142,7 @@ in-memory or SQLite lifecycle store, local rate limiting, minimal audit,
 and candidate internal Apex clients. No production channel authentication,
 Salesforce runtime binding, Named Credential setup or org validation is complete.
 Existing Agentforce actions and Flow are unchanged.
+
+### Verified action candidate
+
+The [phase 4 read facade](salesforce/VERIFIED-ACTIONS.md) exposes only business results or a generic unavailable outcome internally. No Agentforce action is activated.

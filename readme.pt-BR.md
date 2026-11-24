@@ -142,3 +142,7 @@ armazenamento em memória ou SQLite, rate limiting local, auditoria mínima e
 clientes Apex internos candidatos. Autenticação real do canal, vínculo de
 execução Salesforce, configuração de credenciais e validação na org permanecem
 pendentes. As ações Agentforce e o Flow existentes continuam inalterados.
+
+### Ações verificadas candidatas
+
+A [fachada de leitura da fase 4](salesforce/VERIFIED-ACTIONS.md) devolve apenas dados de negócio ou indisponibilidade genérica. Nenhuma ação Agentforce foi ativada.

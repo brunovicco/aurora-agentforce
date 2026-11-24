@@ -8,6 +8,8 @@
         <members>AuroraTrustedContextTest</members>
         <members>AuroraBrokerBindingResolver</members>
         <members>AuroraBrokerBindingResolverTest</members>
+        <members>AuroraVerifiedReadFacade</members>
+        <members>AuroraVerifiedReadFacadeTest</members>
         <name>ApexClass</name>
     </types>
     <version>68.0</version>

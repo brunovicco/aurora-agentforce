@@ -141,3 +141,5 @@ The candidate AuroraContextBroker Named Credential is unconfigured. No agent
 class access, production identity integration or action/Flow migration is
 included. Do not expose the broker or activate candidate actions before
 validating the authenticated runtime binding in an isolated org.
+
+See [VERIFIED-ACTIONS.md](VERIFIED-ACTIONS.md) for the candidate read facade and activation gate. Add AuroraVerifiedReadFacadeTest to isolated Apex validation; do not activate the facade before authenticated runtime verification.
