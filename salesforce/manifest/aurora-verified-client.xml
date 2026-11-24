@@ -6,6 +6,8 @@
         <members>AuroraTrustedContext</members>
         <members>AuroraTrustedOrderActions</members>
         <members>AuroraTrustedContextTest</members>
+        <members>AuroraBrokerBindingResolver</members>
+        <members>AuroraBrokerBindingResolverTest</members>
         <name>ApexClass</name>
     </types>
     <version>68.0</version>

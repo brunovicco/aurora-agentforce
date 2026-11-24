@@ -53,7 +53,8 @@ Use the isolated manifest only in a configured development org:
 cd salesforce
 sf project deploy validate --manifest manifest/aurora-verified-client.xml \
   --target-org aurora-dev --test-level RunSpecifiedTests \
-  --tests AuroraVerifiedOrdersClientTest --tests AuroraTrustedContextTest
+  --tests AuroraVerifiedOrdersClientTest --tests AuroraTrustedContextTest \
+  --tests AuroraBrokerBindingResolverTest
 ```
 
 Check the org's supported API version and CLI options before running. The Apex
@@ -83,3 +84,29 @@ or executed in a Salesforce org.
 References:
 - https://developer.salesforce.com/docs/ai/agentforce/guide/ascript-ref-variables.html
 - https://developer.salesforce.com/blogs/2025/05/best-practices-for-building-agentforce-apex-actions
+
+## Concrete broker client (candidate)
+
+AuroraBrokerBindingResolver calls a separate Named Credential, AuroraContextBroker,
+using POST /v1/context/resolve. It checks exact conversation and execution-user
+correspondence, expiry, revocation and token syntax. It rejects non-200 and malformed
+responses without returning their diagnostic details. No bearer token is stored in
+Salesforce custom fields. The existing AuroraOrders credential is not reused.
+
+The external broker must authenticate the calling infrastructure and independently
+authorize the current conversation. The request identifiers are correlation values,
+not proof of authentication; a shared Salesforce user or integration credential
+alone is insufficient. The broker must derive its answer from an authenticated
+channel binding, not mint a session merely because these identifiers were supplied.
+No actual broker endpoint, Named Credential configuration, durable storage, identity
+provider, permission grant or runtime context wiring is included here. This client
+must remain internal until those controls are implemented and validated.
+
+Expected broker contract: POST JSON conversation_id and execution_user_id;
+200 JSON conversation_id, execution_user_id, expires_at (UTC date-time),
+revoked (boolean), session_token (signed Aurora session). Deny unavailable,
+unauthorized, expired or revoked bindings with non-200. Never log session_token.
+The backend independently validates the token. Mock tests do not establish
+Salesforce credential injection, authentication or trace redaction.
+
+Reference: https://developer.salesforce.com/docs/platform/apex-dev/references/apex-dev/apex-callouts-named-credentials.html

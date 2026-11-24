@@ -139,3 +139,5 @@ See [trusted channel integration](TRUSTED-CHANNEL.md) for the offline resolver, 
 The internal Apex client has a separate candidate manifest, with mock tests and validation instructions in [TRUSTED-CHANNEL.md](TRUSTED-CHANNEL.md). It is not part of the legacy deployment manifest or granted to the agent.
 
 The candidate manifest also contains the internal context facade and its mock tests. A concrete authenticated channel binding resolver is still required before activation.
+
+The isolated manifest includes AuroraBrokerBindingResolver and mock tests. AuroraContextBroker is an unconfigured separate Named Credential; do not grant access or activate actions until a trusted broker and authenticated runtime binding exist.

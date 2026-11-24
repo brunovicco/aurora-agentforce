@@ -141,3 +141,5 @@ The [trusted channel resolver](salesforce/TRUSTED-CHANNEL.md) validates pre-auth
 The internal Apex callout client is available as an isolated candidate in the [trusted channel guide](salesforce/TRUSTED-CHANNEL.md); it is not exposed as an agent action or validated in an org.
 
 The internal Apex context facade re-resolves a trusted binding on every operation; no production binding resolver or invocable action is installed.
+
+A concrete internal Apex broker client is available as a candidate; the authenticated broker service and runtime binding are not implemented.
