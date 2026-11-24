@@ -17,11 +17,11 @@ Source and metadata are committed. External Credential secrets, local Salesforce
 
 ## New backend security increment (not deployed to the org)
 
-The feature branch introduces `/verified/orders/{order_id}` and `/verified/orders/{order_id}/return-eligibility`, each enforcing an integration key **and** a signed short-lived customer session. Identity comes from a trusted issuer, never from the chat or an LLM-selected action parameter. Offline tests cover isolation, expiry, revocation injection and tampering. No public token issuer was added.
+The backend provides `/verified/orders/{order_id}` and `/verified/orders/{order_id}/return-eligibility`, each enforcing an integration key **and** a signed short-lived customer session. Identity comes from a trusted issuer, never from the chat or an LLM-selected action parameter. Offline tests cover isolation, expiry, revocation injection and tampering. No public token issuer is exposed; an optional private broker is described below.
 
 **The currently deployed Agentforce External Service, Agent Script and Case Flow still use the legacy fixed-customer routes.** They have not been migrated to the verified paths, and no Salesforce org tests have been run for this increment. For the original isolated demo to work with this version of the backend, explicitly set `AURORA_ENABLE_UNVERIFIED_DEMO_READS=1`; do not enable this in a public customer channel. Without that opt-in, legacy routes return 403. Verified routes need `AURORA_CUSTOMER_SESSION_SECRET` and return 503 without it. Keep the signing key outside Salesforce prompts, metadata and agent arguments.
 
-Next steps for a **real** Salesforce integration: authenticate the consumer via a trusted provider/channel, propagate a short-lived context through a server-controlled integration (not chat or LLM parameters), validate it for **both** read operations and the Flow, scope Case approval/idempotency keys to the verified customer, implement durable revocation and document org validation evidence. The original Flow remains unchanged on this branch to avoid pretending these controls are already wired.
+Next steps for a **real** Salesforce integration: authenticate the consumer via a trusted provider/channel, propagate a short-lived context through a server-controlled integration (not chat or LLM parameters), validate it for **both** read operations and the Flow, scope Case approval/idempotency keys to the verified customer, configure durable revocation and document org validation evidence. The original Flow remains unchanged to avoid pretending these controls are already wired.
 
 ## Phase 2 candidate contract
 
@@ -131,3 +131,13 @@ This separates integration authentication from customer authentication. The appr
 5. Execute and report all [12 Agentforce evaluation scenarios](../evals/scenarios.json), including negative tests, action traces, and latencies; record a reproducible demo.
 
 This project uses **fictional data** and does not perform real refunds.
+
+## Trusted channel reference boundary
+
+See [TRUSTED-CHANNEL.md](TRUSTED-CHANNEL.md) for the optional broker, explicit
+scope policy, SQLite storage, local rate limiting and isolated Apex validation
+manifest. Broker mode requires a separate credential and disables legacy reads.
+The candidate AuroraContextBroker Named Credential is unconfigured. No agent
+class access, production identity integration or action/Flow migration is
+included. Do not expose the broker or activate candidate actions before
+validating the authenticated runtime binding in an isolated org.

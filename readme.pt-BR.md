@@ -61,11 +61,11 @@ O controle de aprovação protege o caminho de Cases, mas **não substitui auten
 
 **Não exponha esse agente como canal público de atendimento.** A publicação do repositório disponibiliza o código, não um serviço seguro para clientes reais.
 
-### Nova camada de autorização por cliente na API (branch de desenvolvimento)
+### Camada de autorização por cliente na API
 
 As rotas `/verified/orders/{order_id}` e `/verified/orders/{order_id}/return-eligibility` exigem **duas credenciais independentes**: `X-API-Key` para a integração e `X-Aurora-Customer-Session` para o contexto individual. O backend valida assinatura HMAC, emissor, destinatário, validade temporal e revogação quando fornecida, então compara a identidade assinada com o dono do pedido. Pedidos inexistentes e pertencentes a outro cliente têm a mesma resposta 404. Um parâmetro ou mensagem do usuário não pode trocar a identidade assinada.
 
-**Esse avanço protege as novas rotas da API; não conclui autenticação no Salesforce.** O script de emissão produz apenas sessões artificiais para testes, sem autenticar pessoas. Ainda é necessário integrar um canal confiável que identifique o consumidor e injete o contexto fora do controle do LLM, além de adicionar revogação persistente. As ações Agentforce e o Flow atuais **não** propagam essa identidade.
+**Esse avanço protege as novas rotas da API; não conclui autenticação no Salesforce.** O script de emissão produz apenas sessões artificiais para testes, sem autenticar pessoas. Ainda é necessário integrar um canal confiável que identifique o consumidor e injete o contexto fora do controle do LLM, além de configurar a revogação persistente disponível no broker opcional. As ações Agentforce e o Flow atuais **não** propagam essa identidade.
 
 As rotas legadas `/orders/...` ficam desabilitadas por padrão (403). Para reproduzir a demonstração existente, é preciso habilitar `AURORA_ENABLE_UNVERIFIED_DEMO_READS=1` **somente em laboratório isolado com dados fictícios**. As novas rotas retornam 503 caso `AURORA_CUSTOMER_SESSION_SECRET` não seja configurada.
 
@@ -133,3 +133,12 @@ Execute o quality gate Python com `uv run python scripts/quality_gate.py`. A int
 O projeto adapta seletivamente o [harness Python do autor](https://github.com/brunovicco/codex-python-engineering-harness/tree/e9e297456573d216f070a41a7cdaa108dd599c5b). A política de devolução é fictícia; não representa orientação jurídica nem uma política comercial real.
 
 **Licença:** [MIT](LICENSE).
+
+### Referência de canal confiável
+
+A [referência da fase 3](salesforce/TRUSTED-CHANNEL.md) inclui resolvedor e
+transporte Python, broker privado opcional com política explícita de escopo,
+armazenamento em memória ou SQLite, rate limiting local, auditoria mínima e
+clientes Apex internos candidatos. Autenticação real do canal, vínculo de
+execução Salesforce, configuração de credenciais e validação na org permanecem
+pendentes. As ações Agentforce e o Flow existentes continuam inalterados.

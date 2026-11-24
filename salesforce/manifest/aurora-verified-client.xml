@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>AuroraVerifiedOrdersClient</members>
+        <members>AuroraVerifiedOrdersClientTest</members>
+        <members>AuroraTrustedContext</members>
+        <members>AuroraTrustedOrderActions</members>
+        <members>AuroraTrustedContextTest</members>
+        <members>AuroraBrokerBindingResolver</members>
+        <members>AuroraBrokerBindingResolverTest</members>
+        <name>ApexClass</name>
+    </types>
+    <version>68.0</version>
+</Package>

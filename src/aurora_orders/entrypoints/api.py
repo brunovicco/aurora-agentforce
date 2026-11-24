@@ -1,25 +1,34 @@
 """HTTP order reads with separate integration and customer authorization boundaries."""
 
+import logging
 import os
 import secrets
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Path, Security
+from fastapi import Depends, FastAPI, HTTPException, Path, Request, Response, Security
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from aurora_orders.adapters.demo_orders import DEMO_CUSTOMER_REF, demo_orders
+from aurora_orders.application.broker_security import BrokerRateLimit
 from aurora_orders.application.case_keys import case_request_key
+from aurora_orders.application.context_broker import BindingStore, BindingStoreUnavailable
 from aurora_orders.application.customer_sessions import (
     InvalidCustomerSession,
     VerifiedCustomer,
+    mint_demo_session,
     validate_signing_key,
     verify_customer_session,
 )
 from aurora_orders.application.orders import OrderUnavailable, find_order
 from aurora_orders.domain.policy import Order, OrderStatus, evaluate_return
+
+BROKER_LOG = logging.getLogger("aurora.broker")
 
 type OrderId = Annotated[str, Path(pattern=r"^AUR-[0-9]{4}$")]
 
@@ -53,6 +62,24 @@ class CaseAuthorizationResponse(BaseModel):
     request_key: str
 
 
+class BrokerRequest(BaseModel):
+    """Runtime correlation identifiers, not authentication evidence."""
+
+    model_config = ConfigDict(extra="forbid")
+    conversation_id: str = Field(min_length=1, max_length=128)
+    execution_user_id: str = Field(min_length=1, max_length=128)
+
+
+class BrokerResponse(BaseModel):
+    """Internal broker reply; never expose to an agent."""
+
+    conversation_id: str
+    execution_user_id: str
+    expires_at: datetime
+    revoked: bool
+    session_token: str
+
+
 def utc_today() -> date:
     """Use UTC consistently for calendar-day policy calculations."""
     return datetime.now(UTC).date()
@@ -71,6 +98,10 @@ def create_app(
     session_signing_key: str | None = None,
     revoked_session_ids: frozenset[str] = frozenset(),
     allow_unverified_demo_reads: bool | None = None,
+    context_broker: BindingStore | None = None,
+    broker_api_key: str | None = None,
+    broker_rate_limit: BrokerRateLimit | None = None,
+    broker_scope: Callable[[str, str], bool] | None = None,
 ) -> FastAPI:
     """Compose the demo; unverified legacy reads are disabled unless opted in."""
     configured_key = api_key if api_key is not None else os.environ.get("AURORA_API_KEY", "")
@@ -91,12 +122,36 @@ def create_app(
         else allow_unverified_demo_reads
     )
 
+    if (context_broker is None) != (broker_api_key is None):
+        raise ValueError("Configure the broker store and credential together.")
+    if broker_api_key is not None and (
+        not session_secret
+        or unsafe_demo
+        or len(broker_api_key.strip()) < 32
+        or broker_api_key in (configured_key, session_secret)
+    ):
+        raise ValueError("Broker requires a separate credential and verified-only mode.")
+
+    if context_broker is not None and broker_scope is None:
+        raise ValueError("Broker requires an explicit trusted scope policy.")
+
     orders = demo_orders(clock())
     integration_header = APIKeyHeader(name="X-API-Key", scheme_name="ApiKey", auto_error=False)
     customer_header = APIKeyHeader(
         name="X-Aurora-Customer-Session", scheme_name="CustomerSession", auto_error=False
     )
     app = FastAPI(title="Aurora Orders Demo", version="0.2.0")
+
+    @app.exception_handler(RequestValidationError)
+    async def safe_validation_error(request: Request, error: RequestValidationError) -> Response:
+        if request.url.path == "/v1/context/resolve":
+            BROKER_LOG.warning("broker_invalid_request")
+            return JSONResponse(
+                status_code=422,
+                content={"detail": "Context unavailable."},
+                headers={"Cache-Control": "no-store"},
+            )
+        return await request_validation_exception_handler(request, error)
 
     def authenticate(key: Annotated[str | None, Security(integration_header)]) -> None:
         if key is None or not secrets.compare_digest(key.encode(), configured_key.encode()):
@@ -110,12 +165,21 @@ def create_app(
         if token is None:
             raise HTTPException(status_code=401, detail="Invalid customer session.")
         try:
-            return verify_customer_session(
+            customer = verify_customer_session(
                 token,
                 signing_key=session_secret,
                 now=session_clock(),
                 revoked_session_ids=revoked_session_ids,
             )
+            if context_broker is not None and not context_broker.is_active(
+                customer, session_clock()
+            ):
+                raise InvalidCustomerSession
+            return customer
+        except BindingStoreUnavailable as error:
+            raise HTTPException(
+                status_code=503, detail="Verified customer reads unavailable."
+            ) from error
         except InvalidCustomerSession as error:
             raise HTTPException(status_code=401, detail="Invalid customer session.") from error
 
@@ -207,6 +271,80 @@ def create_app(
             order_id=order.order_id,
             request_key=case_request_key(order),
         )
+
+    if context_broker is not None and broker_api_key is not None and broker_scope is not None:
+        broker = context_broker
+        broker_key = broker_api_key
+        scope = broker_scope
+        limiter = broker_rate_limit if broker_rate_limit is not None else BrokerRateLimit()
+        broker_header = APIKeyHeader(
+            name="X-Aurora-Broker-Key", scheme_name="BrokerKey", auto_error=False
+        )
+
+        @app.post("/v1/context/resolve", response_model=BrokerResponse, include_in_schema=False)
+        def resolve_context(
+            request: BrokerRequest,
+            response: Response,
+            key: Annotated[str | None, Security(broker_header)],
+        ) -> BrokerResponse:
+            no_store = {"Cache-Control": "no-store"}
+            if not limiter.admit():
+                BROKER_LOG.warning("broker_rate_limited")
+                raise HTTPException(
+                    status_code=429, detail="Context unavailable.", headers=no_store
+                )
+            if key is None or not secrets.compare_digest(key.encode(), broker_key.encode()):
+                BROKER_LOG.warning("broker_credential_denied")
+                raise HTTPException(
+                    status_code=401, detail="Context unavailable.", headers=no_store
+                )
+            now = session_clock()
+            try:
+                if not scope(request.conversation_id, request.execution_user_id):
+                    BROKER_LOG.warning("broker_scope_denied")
+                    raise HTTPException(
+                        status_code=404, detail="Context unavailable.", headers=no_store
+                    )
+                binding = broker.resolve(request.conversation_id, request.execution_user_id, now)
+            except HTTPException:
+                raise
+            except Exception as error:
+                BROKER_LOG.error("broker_context_unavailable")
+                raise HTTPException(
+                    status_code=503, detail="Context unavailable.", headers=no_store
+                ) from error
+            if (
+                binding is None
+                or binding.conversation_id != request.conversation_id
+                or binding.execution_user_id != request.execution_user_id
+                or binding.customer.session_id in revoked_session_ids
+            ):
+                BROKER_LOG.warning("broker_binding_denied")
+                raise HTTPException(
+                    status_code=404, detail="Context unavailable.", headers=no_store
+                )
+            ttl = min(300, int(binding.expires_at.timestamp()) - int(now.timestamp()))
+            if ttl < 1:
+                BROKER_LOG.warning("broker_binding_denied")
+                raise HTTPException(
+                    status_code=404, detail="Context unavailable.", headers=no_store
+                )
+            response.headers["Cache-Control"] = "no-store"
+            token = mint_demo_session(
+                signing_key=session_secret,
+                customer_ref=binding.customer.customer_ref,
+                session_id=binding.customer.session_id,
+                now=now,
+                ttl_seconds=ttl,
+            )
+            BROKER_LOG.info("broker_session_issued")
+            return BrokerResponse(
+                conversation_id=binding.conversation_id,
+                execution_user_id=binding.execution_user_id,
+                expires_at=datetime.fromtimestamp(int(now.timestamp()) + ttl, UTC),
+                revoked=False,
+                session_token=token,
+            )
 
     # FastAPI generates separate security alternatives; verified routes require both.
     schema = app.openapi()
