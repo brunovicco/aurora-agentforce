@@ -149,3 +149,16 @@ The shared broker caller still must enforce independently authenticated
 conversation scope. Credential failures and HTTP-level issuance are not yet
 audited by this store. Production rate limiting, retention, access controls,
 and channel validation remain pending.
+
+## Broker hardening
+
+Broker mode now requires an explicit trusted scope policy callback, independent of
+the binding lookup. It must enforce the actual authenticated caller's permitted
+conversation/user pair; a permissive callback is suitable only for isolated tests.
+A bounded process-local global fixed-window budget defaults to 120 resolution
+attempts per minute, including invalid credentials for well-formed requests.
+This is not distributed rate limiting and does not replace ingress controls.
+HTTP broker outcomes are logged as fixed event names without identifiers, request
+bodies, tokens or credentials. Enable INFO for issuance events and route logs
+to a protected sink. SQLite failures become generic 503 denials. The scope
+callback and credential provisioning still require real runtime integration.

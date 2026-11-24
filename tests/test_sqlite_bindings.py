@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import closing
 from datetime import timedelta
 from pathlib import Path
 
@@ -38,7 +39,7 @@ def test_replacement_scope_expiry_and_audit(tmp_path: Path) -> None:
     assert store.is_active(current.customer, NOW)
     assert not store.is_active(current.customer, NOW + timedelta(minutes=2))
     assert store.resolve("conversation-1", "user-1", NOW + timedelta(minutes=2)) is None
-    with sqlite3.connect(path) as db:
+    with closing(sqlite3.connect(path)) as db:
         events = db.execute("SELECT event_type FROM audit_events ORDER BY event_id").fetchall()
     assert [event[0] for event in events] == [
         "binding_registered_or_replaced",

@@ -147,3 +147,5 @@ A concrete internal Apex broker client is available as a candidate; the authenti
 An opt-in Python broker reference now supports pre-authenticated registration, resolution and revocation. It is process-local and not a production identity provider.
 
 An optional SQLite binding store persists lifecycle state and minimal audit outcomes across restarts; see the trusted channel guide for storage controls and limits.
+
+Broker mode requires an explicit scope policy and includes bounded local admission control and secret-free HTTP outcome logs.

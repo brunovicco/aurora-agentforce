@@ -6,7 +6,11 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
-from aurora_orders.application.context_broker import BrokerBinding, new_binding
+from aurora_orders.application.context_broker import (
+    BindingStoreUnavailable,
+    BrokerBinding,
+    new_binding,
+)
 from aurora_orders.application.customer_sessions import VerifiedCustomer
 
 
@@ -34,12 +38,15 @@ class SQLiteBindingStore:
 
     @contextmanager
     def _transaction(self) -> Iterator[sqlite3.Connection]:
-        db = sqlite3.connect(self._path, timeout=5, autocommit=False)
         try:
-            with db:
-                yield db
-        finally:
-            db.close()
+            db = sqlite3.connect(self._path, timeout=5, autocommit=False)
+            try:
+                with db:
+                    yield db
+            finally:
+                db.close()
+        except sqlite3.Error as error:
+            raise BindingStoreUnavailable("Binding store unavailable.") from error
 
     @staticmethod
     def _audit(db: sqlite3.Connection, event: str, now: datetime) -> None:

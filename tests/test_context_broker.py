@@ -32,6 +32,7 @@ def make_client(broker: BindingStore) -> TestClient:
             clock=lambda: TODAY,
             context_broker=broker,
             broker_api_key=BROKER_KEY,
+            broker_scope=lambda conversation, user: True,
             allow_unverified_demo_reads=False,
         )
     )
@@ -72,9 +73,7 @@ def test_broker_credentials_and_scope() -> None:
             {**PAYLOAD, "execution_user_id": "user-2"},
             {**PAYLOAD, "conversation_id": "conversation-2"},
         ):
-            result = client.post(
-                ROUTE, json=payload, headers={"X-Aurora-Broker-Key": BROKER_KEY}
-            )
+            result = client.post(ROUTE, json=payload, headers={"X-Aurora-Broker-Key": BROKER_KEY})
             assert result.status_code == 404
         assert client.get("/verified/orders/AUR-1001", headers=session_headers()).status_code == 401
         assert ROUTE not in client.get("/openapi.json").json()["paths"]

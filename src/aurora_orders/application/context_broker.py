@@ -19,6 +19,10 @@ class BrokerBinding:
     expires_at: datetime
 
 
+class BindingStoreUnavailable(RuntimeError):
+    """The binding store cannot safely decide authorization."""
+
+
 class BindingStore(Protocol):
     """Lifecycle contract for the in-memory and durable broker stores."""
 

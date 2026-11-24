@@ -147,3 +147,5 @@ O cliente Apex interno do broker de contexto está disponível como candidato; o
 O broker Python opcional permite registrar, resolver e revogar vínculos previamente autenticados. O armazenamento é local ao processo, não persistente.
 
 Um armazenamento SQLite opcional preserva vínculos e eventos mínimos de auditoria após reinicializações; consulte o guia de canal confiável para controles e limitações.
+
+O broker exige política explícita de escopo, com controle local de requisições e logs de resultado sem segredos.

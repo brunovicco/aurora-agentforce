@@ -145,3 +145,5 @@ The isolated manifest includes AuroraBrokerBindingResolver and mock tests. Auror
 The optional reference broker is described in TRUSTED-CHANNEL.md. It requires an injected store and separate X-Aurora-Broker-Key, not a public enrollment endpoint.
 
 The broker supports an injected SQLite binding store for a local reference deployment. See TRUSTED-CHANNEL.md for private directory requirements and audit limitations.
+
+Broker mode requires a trusted scope callback; see TRUSTED-CHANNEL.md for rate limits and security logging. No permissive production default is supplied.
