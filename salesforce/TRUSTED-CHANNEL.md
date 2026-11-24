@@ -53,10 +53,33 @@ Use the isolated manifest only in a configured development org:
 cd salesforce
 sf project deploy validate --manifest manifest/aurora-verified-client.xml \
   --target-org aurora-dev --test-level RunSpecifiedTests \
-  --tests AuroraVerifiedOrdersClientTest
+  --tests AuroraVerifiedOrdersClientTest --tests AuroraTrustedContextTest
 ```
 
 Check the org's supported API version and CLI options before running. The Apex
 mock tests are authored but not executed here. They cannot verify actual Named
 Credential injection, platform authentication or debug-log redaction. Validate
 those separately before exposing any action. Never deploy against real customer data.
+
+## Internal Salesforce context boundary
+
+The candidate Apex facade AuroraTrustedOrderActions accepts only an order ID per
+business method. AuroraTrustedContext requires an injected BindingResolver and
+a trusted conversation identifier at construction. It checks the exact conversation,
+current execution user, expiry, revocation and token syntax on every call. The
+backend remains responsible for signature validation and ownership. The execution
+user is NOT evidence of customer identity, particularly for shared service-agent users.
+
+No concrete production resolver is installed. An authenticated Experience Cloud
+channel with Credential-Based User Verification is one candidate to investigate;
+linked MessagingSession variables are system-populated identifiers, not proof of
+authentication. A trusted issuer must independently establish the binding and ensure
+that it is current for the actual conversation. Do not bind the constructor to
+arbitrary action input or grant the agent access to tokens or resolver configuration.
+The classes are internal, not invocable, and the isolated manifest is unchanged
+in deployment scope (candidate classes only). The new mock tests are not compiled
+or executed in a Salesforce org.
+
+References:
+- https://developer.salesforce.com/docs/ai/agentforce/guide/ascript-ref-variables.html
+- https://developer.salesforce.com/blogs/2025/05/best-practices-for-building-agentforce-apex-actions

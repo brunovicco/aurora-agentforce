@@ -3,6 +3,9 @@
     <types>
         <members>AuroraVerifiedOrdersClient</members>
         <members>AuroraVerifiedOrdersClientTest</members>
+        <members>AuroraTrustedContext</members>
+        <members>AuroraTrustedOrderActions</members>
+        <members>AuroraTrustedContextTest</members>
         <name>ApexClass</name>
     </types>
     <version>68.0</version>

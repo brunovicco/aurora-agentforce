@@ -137,3 +137,5 @@ This project uses **fictional data** and does not perform real refunds.
 See [trusted channel integration](TRUSTED-CHANNEL.md) for the offline resolver, reference transport and required platform binding. No Salesforce action or Flow migration is included.
 
 The internal Apex client has a separate candidate manifest, with mock tests and validation instructions in [TRUSTED-CHANNEL.md](TRUSTED-CHANNEL.md). It is not part of the legacy deployment manifest or granted to the agent.
+
+The candidate manifest also contains the internal context facade and its mock tests. A concrete authenticated channel binding resolver is still required before activation.
