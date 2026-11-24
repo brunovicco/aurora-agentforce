@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 from jsonschema import Draft4Validator
 from openapi_spec_validator import validate
 
+from aurora_orders.application.case_keys import case_request_key
+from aurora_orders.domain.policy import Order
 from aurora_orders.entrypoints.api import create_app
 from tests.conftest import NOW, TEST_API_KEY, TEST_SESSION_KEY, TODAY
 from tests.test_verified_api import session_headers
@@ -34,7 +36,10 @@ def test_verified_contract_is_valid_and_matches_routes(gateway: TestClient) -> N
     live = gateway.get("/openapi.json").json()
     for path, operation in CONTRACT["paths"].items():
         assert operation["get"]["operationId"] == live["paths"][path]["get"]["operationId"]
+        assert live["paths"][path]["get"]["security"] == CONTRACT["security"]
     assert CONTRACT["security"] == [{"ApiKey": [], "CustomerSession": []}]
+    assert live["components"]["securitySchemes"] == CONTRACT["components"]["securitySchemes"]
+    assert live["paths"]["/orders/{order_id}"]["get"]["security"] == [{"ApiKey": []}]
 
 
 @pytest.mark.parametrize("path", list(CONTRACT["paths"]))
@@ -97,3 +102,13 @@ def test_case_authorization_does_not_disclose_cross_customer_key(gateway: TestCl
     missing = gateway.get(CASE_ROUTE.replace("{order_id}", "AUR-9999"), headers=session_headers())
     assert denied.status_code == missing.status_code == 404
     assert denied.json() == missing.json() == {"detail": "Order unavailable."}
+
+
+def test_case_keys_fit_salesforce_and_preserve_exact_identity() -> None:
+    def key(customer: str) -> str:
+        return case_request_key(Order("AUR-1001", customer, "demo", "shipped"))
+
+    keys = [key("A" * 128), key("a" * 128), key("CUSTOMER-DEMO-001"), key("customer-demo-001")]
+    assert all(len(value) <= 100 for value in keys)
+    assert len({value.lower() for value in keys}) == len(keys)
+    assert key("A" * 128) == keys[0]

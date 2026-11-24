@@ -313,7 +313,8 @@
                       "type": "string"
                     },
                     "request_key": {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 100
                     }
                   }
                 }

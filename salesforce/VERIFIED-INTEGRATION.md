@@ -12,7 +12,11 @@ This is a candidate contract for trusted integration code, not an imported or de
 All require the integration credential AND a signed customer session. The Case authorization
 operation is read-only: it does not create, approve, or retrieve a Salesforce Case.
 Its key is derived from the stored order owner, never from a chat argument. It deliberately
-matches the existing approval/idempotency key format to preserve records for the first demo customer.
+preserves the existing keys for both known synthetic customers. Other customer references use a
+versioned SHA-256 digest of the exact customer/order/action tuple (no case folding), yielding
+67 characters compatible with the Salesforce case-insensitive Text(100) fields. This is a
+stable identifier, not a secret or approval token. The generated FastAPI schema and candidate
+contract both declare the two credentials as an AND requirement.
 
 ## Salesforce cutover requirements
 
