@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "status": "target_not_verified",
+  "profile": "Aurora Customer",
+  "principals": [
+    "guest",
+    "customer_a",
+    "customer_b"
+  ],
+  "objects": {
+    "Account": {
+      "read": "own_only_if_required",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "Contact": {
+      "read": "own_only_if_required",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "User": {
+      "read": "own_only_if_required",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "Case": {
+      "read": "deny",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "AuroraCaseApproval__c": {
+      "read": "deny",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "Order": {
+      "read": "deny",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "MessagingSession": {
+      "read": "deny",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    },
+    "MessagingEndUser": {
+      "read": "deny",
+      "create": false,
+      "update": false,
+      "delete": false,
+      "view_all": false,
+      "modify_all": false
+    }
+  },
+  "business_operations": {
+    "direct_case_create": "deny",
+    "arbitrary_flow": "deny",
+    "legacy_agent": "deny",
+    "direct_orders_api": "deny",
+    "direct_integration_apex": "deny",
+    "credential_disclosure": "deny"
+  },
+  "runtime_checks": [
+    "guest_business_access_denied",
+    "customer_a_own_identity",
+    "customer_b_own_identity",
+    "customer_a_cross_account_denied",
+    "customer_b_cross_account_denied",
+    "direct_case_create_denied",
+    "direct_approval_access_denied",
+    "arbitrary_flow_denied",
+    "logout_invalidates_session"
+  ],
+  "notes": "Target for initial restricted portal only. Own-only read requires separate field and record-level verification. No effective permission claims."
+}
