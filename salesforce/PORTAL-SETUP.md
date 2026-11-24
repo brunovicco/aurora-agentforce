@@ -7,13 +7,13 @@ Prerequisites: Digital Experiences enabled, custom external profile `Aurora Cust
 From repository root:
 
 ```bash
-python3 scripts/portal_prepare.py
+uv run python scripts/portal_prepare.py
 ```
 
 Render outside the repository with real environment-specific values (never commit the rendered files):
 
 ```bash
-python3 scripts/portal_prepare.py --output /tmp/aurora-portal-rendered \
+uv run python scripts/portal_prepare.py --output /tmp/aurora-portal-rendered \
   --sender "$PORTAL_SENDER" --admin "$PORTAL_ADMIN" --owner "$PORTAL_OWNER"
 bash scripts/sf-validate-portal.sh aurora-dev /tmp/aurora-portal-rendered
 ```
@@ -41,3 +41,5 @@ and Network.status=UnderConstruction.
 This validates metadata compatibility with the existing
 development org. It does not establish fresh-org portability,
 runtime authentication or customer isolation.
+
+The dry-run wrapper requires PORTAL_SENDER, PORTAL_ADMIN and PORTAL_OWNER in the environment. It compares the rendered file inventory and contents with the template and expected substitutions before invoking Salesforce CLI. This is a local integrity check, not a signed artifact or protection against concurrent filesystem modification.

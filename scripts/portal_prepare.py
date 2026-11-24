@@ -21,6 +21,8 @@ def require(ok: bool, message: str) -> None:
 
 
 def validate(root: Path) -> None:
+    require(not root.is_symlink(), "Symbolic link root")
+    require(all(not p.is_symlink() for p in root.rglob("*")), "Symbolic links forbidden")
     network = ET.parse(
         root / NETWORK, forbid_dtd=True, forbid_entities=True, forbid_external=True
     ).getroot()
@@ -67,14 +69,15 @@ def validate(root: Path) -> None:
         root / "package.xml", forbid_dtd=True, forbid_entities=True, forbid_external=True
     ).getroot()
     actual = [
-        (x.findtext(NS + "name"), x.findtext(NS + "members")) for x in package.findall(NS + "types")
+        (x.findtext(NS + "name"), [m.text for m in x.findall(NS + "members")])
+        for x in package.findall(NS + "types")
     ]
     require(
         actual
         == [
-            ("CustomSite", "Aurora_Customer_Portal"),
-            ("ExperienceBundle", "Aurora_Customer_Portal1"),
-            ("Network", "Aurora Customer Portal"),
+            ("CustomSite", ["Aurora_Customer_Portal"]),
+            ("ExperienceBundle", ["Aurora_Customer_Portal1"]),
+            ("Network", ["Aurora Customer Portal"]),
         ],
         "Unexpected manifest",
     )
@@ -91,15 +94,38 @@ def validate(root: Path) -> None:
     print(f"Validated {len(docs)} JSON files, {len(routes)} routes and metadata controls.")
 
 
+def verify_rendered(root: Path, sender: str, admin: str, owner: str) -> None:
+    validate(ROOT)
+    require(root.is_dir() and not root.is_symlink(), "Invalid rendered directory")
+    require(not root.resolve().is_relative_to(ROOT.parents[1]), "Output inside repository")
+    require(all(not p.is_symlink() for p in root.rglob("*")), "Symbolic links forbidden")
+    expected = {p.relative_to(ROOT) for p in ROOT.rglob("*") if p.is_file()}
+    actual = {p.relative_to(root) for p in root.rglob("*") if p.is_file()}
+    require(actual == expected, "Rendered file inventory differs")
+    substitutions = {
+        NETWORK: {"__AURORA_SENDER__": sender},
+        SITE: {"__AURORA_ADMIN__": admin, "__AURORA_OWNER__": owner},
+    }
+    for path in expected:
+        original = (ROOT / path).read_bytes()
+        for token, value in substitutions.get(path, {}).items():
+            require(original.count(token.encode()) == 1, "Invalid placeholder count")
+            original = original.replace(token.encode(), value.encode())
+        require((root / path).read_bytes() == original, "Rendered metadata differs")
+    print("Rendered metadata integrity verified.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--verify-rendered", type=Path)
     parser.add_argument("--sender")
     parser.add_argument("--admin")
     parser.add_argument("--owner")
     args = parser.parse_args()
     validate(ROOT)
-    if args.output is None:
+    require(not (args.output and args.verify_rendered), "Choose one operation")
+    if args.output is None and args.verify_rendered is None:
         return
     values = [args.sender, args.admin, args.owner]
     require(
@@ -108,6 +134,9 @@ def main() -> None:
         ),
         "Valid sender, admin and owner required",
     )
+    if args.verify_rendered is not None:
+        verify_rendered(args.verify_rendered, args.sender, args.admin, args.owner)
+        return
     require(not args.output.exists(), "Output must not exist")
     require(
         not args.output.resolve().is_relative_to(ROOT.parents[1]),
@@ -123,6 +152,7 @@ def main() -> None:
         for token, value in substitutions.items():
             content = content.replace(token, value)
         target.write_text(content)
+    verify_rendered(args.output, args.sender, args.admin, args.owner)
     print("Rendered private metadata directory; no deployment performed.")
 
 
