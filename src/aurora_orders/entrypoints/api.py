@@ -11,6 +11,7 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, ConfigDict
 
 from aurora_orders.adapters.demo_orders import DEMO_CUSTOMER_REF, demo_orders
+from aurora_orders.application.case_keys import case_request_key
 from aurora_orders.application.customer_sessions import (
     InvalidCustomerSession,
     VerifiedCustomer,
@@ -42,6 +43,14 @@ class EligibilityResponse(BaseModel):
     reason: str
     policy_reference: str
     evaluated_on: date
+
+
+class CaseAuthorizationResponse(BaseModel):
+    """Ownership evidence for a trusted Salesforce action, not approval to write."""
+
+    model_config = ConfigDict(extra="forbid")
+    order_id: str
+    request_key: str
 
 
 def utc_today() -> date:
@@ -83,8 +92,10 @@ def create_app(
     )
 
     orders = demo_orders(clock())
-    integration_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-    customer_header = APIKeyHeader(name="X-Aurora-Customer-Session", auto_error=False)
+    integration_header = APIKeyHeader(name="X-API-Key", scheme_name="ApiKey", auto_error=False)
+    customer_header = APIKeyHeader(
+        name="X-Aurora-Customer-Session", scheme_name="CustomerSession", auto_error=False
+    )
     app = FastAPI(title="Aurora Orders Demo", version="0.2.0")
 
     def authenticate(key: Annotated[str | None, Security(integration_header)]) -> None:
@@ -181,4 +192,26 @@ def create_app(
     ) -> EligibilityResponse:
         return eligibility_response(authorized_order(order_id, customer_ref=customer.customer_ref))
 
+    @app.get(
+        "/verified/orders/{order_id}/case-authorization",
+        operation_id="authorizeVerifiedCaseRequest",
+        response_model=CaseAuthorizationResponse,
+        dependencies=[Depends(authenticate)],
+    )
+    def authorize_case_request(
+        order_id: OrderId,
+        customer: Annotated[VerifiedCustomer, Depends(verified_customer)],
+    ) -> CaseAuthorizationResponse:
+        order = authorized_order(order_id, customer_ref=customer.customer_ref)
+        return CaseAuthorizationResponse(
+            order_id=order.order_id,
+            request_key=case_request_key(order),
+        )
+
+    # FastAPI generates separate security alternatives; verified routes require both.
+    schema = app.openapi()
+    for path, operations in schema["paths"].items():
+        if path.startswith("/verified/"):
+            operations["get"]["security"] = [{"ApiKey": [], "CustomerSession": []}]
+    app.openapi_schema = schema
     return app

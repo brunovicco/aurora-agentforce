@@ -88,6 +88,10 @@ curl -H "X-API-Key: $AURORA_API_KEY" \
 
 Os tokens expiram em cinco minutos; a emissão local não é fluxo de login. Não enviar tokens no chat nem como parâmetros controlados pelo agente. O conjunto de revogação injetável é apenas para testes, não um armazenamento distribuído.
 
+### Fase 2: evidência de titularidade para Cases
+
+A rota `/verified/orders/{order_id}/case-authorization` devolve uma chave de solicitação derivada no servidor após verificar o vínculo com o cliente. Não aprova nem cria Cases. Consulte o [contrato e checklist de migração Salesforce](salesforce/VERIFIED-INTEGRATION.md). Os metadados existentes continuam legados e não foram migrados.
+
 ## Executar a API de pedidos localmente
 
 Requisitos: **Python 3.14** e [uv](https://docs.astral.sh/uv/).

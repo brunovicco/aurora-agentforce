@@ -88,6 +88,10 @@ curl -H "X-API-Key: $AURORA_API_KEY" \
 
 Tokens expire after five minutes. This is not a login flow. In-memory revocation injection is for tests, not a distributed session store. Do not forward the token through a chat message or an LLM-generated tool argument.
 
+### Phase 2: ownership evidence for Case authorization
+
+The verified API now also provides `/verified/orders/{order_id}/case-authorization`, returning a server-derived customer-scoped request key after ownership validation. It does not approve or create Cases. See the [verified contract and Salesforce cutover checklist](salesforce/VERIFIED-INTEGRATION.md). Existing Salesforce metadata remains legacy and has not been migrated.
+
 ## Run the orders API locally
 
 Requirements: **Python 3.14** and [uv](https://docs.astral.sh/uv/).
