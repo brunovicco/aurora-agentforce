@@ -1,0 +1,33 @@
+{
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "b8234b86-f100-402a-8603-564341b67ead",
+  "label" : "Detalhes do fluxo",
+  "regions" : [ {
+    "id" : "159eed5f-4ec7-4180-a012-c03d1d391632",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "id" : "{!recordId}"
+      },
+      "componentName" : "forceCommunity:streamDetail",
+      "id" : "edccff05-0810-4c7a-8a00-71c3422c9277",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "a607d8e0-2ca4-49c6-9b3a-d30e360c671f",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "a083aa23-f93f-453c-bac2-5fd4925cd478",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "detail-0Fq"
+}

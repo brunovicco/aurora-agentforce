@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "707da599-0c8b-45cc-a78c-60cdf0b2eece",
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "configurationTags" : [ ],
+  "devName" : "relatedlist_0Qo",
+  "id" : "71a5ee08-d74b-45a8-bbf5-5e012754d183",
+  "label" : "Programa de habilitação Related List",
+  "routeType" : "relatedlist-0Qo",
+  "type" : "route",
+  "urlPrefix" : "enablementprogram"
+}

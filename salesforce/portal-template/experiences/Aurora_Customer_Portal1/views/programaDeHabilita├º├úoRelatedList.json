@@ -1,0 +1,23 @@
+{
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "707da599-0c8b-45cc-a78c-60cdf0b2eece",
+  "label" : "Programa de habilitação Related List",
+  "regions" : [ {
+    "id" : "1001ea53-957d-4f90-9fa8-2f61c799f857",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "id" : "bd40bc52-4724-490f-95df-10d6dc993ac7",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "470d4b94-7adb-4a72-b24a-3f53f7f054ff",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "relatedlist-0Qo"
+}

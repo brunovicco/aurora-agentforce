@@ -13,6 +13,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "bandit[toml]>=1.8",
+    "defusedxml>=0.7.1",
     "httpx>=0.28",
     "jsonschema>=4.23",
     "mypy>=1.16",

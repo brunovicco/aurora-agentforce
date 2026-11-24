@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "b41e2deb-4f9c-4853-8319-ae15430842cf",
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "configurationTags" : [ ],
+  "devName" : "Fluxo_Related_List",
+  "id" : "01fd7b4c-cad2-435f-ad19-476d35f7762b",
+  "label" : "Fluxo Related List",
+  "routeType" : "relatedlist-0Fq",
+  "type" : "route",
+  "urlPrefix" : "streams"
+}

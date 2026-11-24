@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "b8234b86-f100-402a-8603-564341b67ead",
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "configurationTags" : [ ],
+  "devName" : "Stream_Detail",
+  "id" : "bff9f47a-6f1b-4018-bca7-3deb4b71d1fc",
+  "label" : "Detalhes do fluxo",
+  "routeType" : "detail-0Fq",
+  "type" : "route",
+  "urlPrefix" : "streams"
+}

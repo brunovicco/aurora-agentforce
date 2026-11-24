@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "6059fd0f-c09a-4324-99d3-326e7c58fa5f",
+  "appPageId" : "d39b6048-1057-4988-91dd-1d235e359788",
+  "configurationTags" : [ ],
+  "devName" : "Arquivo_Related_List",
+  "id" : "9a555a9a-bdf9-4c49-9a1e-377963255654",
+  "label" : "Arquivo Related List",
+  "routeType" : "relatedlist-069",
+  "type" : "route",
+  "urlPrefix" : "contentdocument"
+}
