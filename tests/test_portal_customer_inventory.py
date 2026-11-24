@@ -1,9 +1,13 @@
 """Synthetic tests for read-only portal identity reconciliation."""
 
+import json
 from copy import deepcopy
+from pathlib import Path
 from typing import Any
 
-from scripts.portal_customer_inventory import reconcile
+import pytest
+
+from scripts.portal_customer_inventory import main, reconcile
 
 
 def records() -> list[dict[str, Any]]:
@@ -59,3 +63,24 @@ def test_wrong_profile() -> None:
     rows = records()
     rows[0]["Profile"]["Name"] = "System Administrator"
     assert reconcile(rows)["ready"] is False
+
+
+@pytest.mark.parametrize("mode", ["success", "missing", "failed", "truncated", "not_done"])
+def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
+    rows = records() if mode != "missing" else records()[:1]
+    payload = {
+        "status": 1 if mode == "failed" else 0,
+        "result": {
+            "done": mode != "not_done",
+            "totalSize": len(rows) + (mode == "truncated"),
+            "records": rows,
+        },
+    }
+    path = tmp_path / "inventory.json"
+    path.write_text(json.dumps(payload))
+    monkeypatch.setattr("sys.argv", ["inventory", str(path)])
+    if mode == "success":
+        main()
+    else:
+        with pytest.raises(SystemExit):
+            main()

@@ -1,9 +1,11 @@
 """Regression tests for the conservative permission evidence reviewer."""
 
+import json
+from pathlib import Path
 from typing import Any
 
 import pytest
-from scripts.portal_permission_review import review
+from scripts.portal_permission_review import main, review
 
 
 def evidence() -> dict[str, Any]:
@@ -80,4 +82,35 @@ def test_invalid_flag_is_rejected() -> None:
     row["read"] = "false"
     data["actors"]["customer_a"]["object_grants"] = [row]
     with pytest.raises(ValueError, match="boolean"):
+        review(data)
+
+
+@pytest.mark.parametrize("mode", ["clean", "group"])
+def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
+    data = evidence()
+    data["actors"]["guest"]["groups_present"] = mode == "group"
+    path = tmp_path / "evidence.json"
+    path.write_text(json.dumps(data))
+    monkeypatch.setattr("sys.argv", ["review", str(path)])
+    if mode == "clean":
+        main()
+    else:
+        with pytest.raises(SystemExit):
+            main()
+
+
+@pytest.mark.parametrize("mode", ["actors", "actor", "grants", "row", "flags"])
+def test_invalid_structure(mode: str) -> None:
+    data = evidence()
+    if mode == "actors":
+        data["actors"] = {}
+    elif mode == "actor":
+        data["actors"]["guest"] = None
+    elif mode == "grants":
+        data["actors"]["guest"]["object_grants"] = None
+    elif mode == "row":
+        data["actors"]["guest"]["object_grants"] = [{}]
+    else:
+        data["actors"]["guest"]["object_grants"] = [{"object": "Case"}]
+    with pytest.raises(ValueError):
         review(data)

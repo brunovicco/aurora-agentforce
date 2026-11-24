@@ -59,6 +59,9 @@ def configured_checks(root: Path) -> list[Check]:
     source_roots = expand_roots(root, source_patterns)
     test_roots = expand_roots(root, test_patterns)
     type_roots = [*source_roots, *test_roots]
+    security_roots = expand_roots(
+        root, string_list(settings.get("security-roots"), source_patterns)
+    )
 
     checks = [
         Check("lock", ("uv", "lock", "--check")),
@@ -71,7 +74,7 @@ def configured_checks(root: Path) -> list[Check]:
     checks.append(
         Check(
             "security",
-            ("bandit", "-c", "pyproject.toml", "-r", *source_roots) if source_roots else (),
+            ("bandit", "-c", "pyproject.toml", "-r", *security_roots) if security_roots else (),
         )
     )
     checks.append(Check("dependencies", ("pip-audit",)))

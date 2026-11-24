@@ -24,3 +24,9 @@ Future increments: permission audit, reproducible customer provisioning, navigat
 ## Remaining route inventory
 
 [portal-route-inventory.json](portal-route-inventory.json) records the 55 route filenames from the candidate Git tree. A regression test checks the exact inventory (normalizing Unicode filenames to NFC). This is not an effective-access report. Prioritize direct Case creation/support, generic record creation and detail/list pages, flows/OmniScript, user/profile/account management, files, reports/dashboards and collaboration routes in the external-profile audit. Retain login, password recovery and error routes until their dependencies and behavior are validated.
+
+## Validation evidence — November 24, 2026
+
+Revision `726fecbc5805872d9727593ff6a340f76b32944b`: local macOS quality gate succeeded (166 tests, 95.25% configured coverage, Mypy clean across 34 files). All three GitHub Actions workflows succeeded. Bandit scanned src only; dependency audit found no known vulnerabilities among audited dependencies (the local project was excluded). The Starlette test client emitted a non-blocking deprecation warning.
+
+Existing Developer Edition: read-only customer reconciliation matched both synthetic customers, distinct account/contact/user identities, active portal users and expected profile; zero mutations. Static validation: 117 JSON files, 55 routes; rendered integrity verified. Salesforce API 68.0 dry-run succeeded, 3/3 components, 67.16 seconds; tests and source tracking skipped. No permanent deployment, visual preview, effective permissions or runtime isolation verified.
