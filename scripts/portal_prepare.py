@@ -26,9 +26,13 @@ def validate(root: Path) -> None:
     network = ET.parse(
         root / NETWORK, forbid_dtd=True, forbid_entities=True, forbid_external=True
     ).getroot()
+    if network is None:
+        raise ValueError("Missing network XML root")
     site = ET.parse(
         root / SITE, forbid_dtd=True, forbid_entities=True, forbid_external=True
     ).getroot()
+    if site is None:
+        raise ValueError("Missing site XML root")
     for key in (
         "selfRegistration",
         "enableGuestChatter",
@@ -68,6 +72,8 @@ def validate(root: Path) -> None:
     package = ET.parse(
         root / "package.xml", forbid_dtd=True, forbid_entities=True, forbid_external=True
     ).getroot()
+    if package is None:
+        raise ValueError("Missing package XML root")
     actual = [
         (x.findtext(NS + "name"), [m.text for m in x.findall(NS + "members")])
         for x in package.findall(NS + "types")
