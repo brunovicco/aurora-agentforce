@@ -56,3 +56,7 @@ The revised collector queries the exact Site name and checks its GuestUser relat
 ## Field and broad system grants
 
 The collector also queries FieldPermissions for the eight policy objects and three broad PermissionSet flags (View All Data, Modify All Data, Manage Users). The sanitized report aggregates positive field grants by actor/object/read-or-edit without exposing field values or identifiers. These are observed grants, not effective FLS or a complete system permission audit. Missing profile sources and missing system rows are explicit gaps. Queries may return substantial org-wide metadata; incomplete responses are rejected. No changes are made. Permission-set group composition, muting, sharing, field-level allowlists and runtime authorization still require separate review.
+
+## Extended grant collection evidence
+
+Revision `31acd83d3fabcfe312bcda5c0b4e6fcf72cf0575`: the local quality gate and all three GitHub Actions workflows passed. The extended collector completed successfully in the existing Developer Edition. The sanitized report contained no observed disallowed object grants, no positive field-grant object aggregates, no observed broad system grants, and no additional review gaps. The three actor source inventories remain explicitly incomplete; effective permissions and runtime access are unverified. No changes were made. The three group-resolution gaps were absent in this report, which is not proof of complete group or muting analysis. No raw identity data is retained here.
