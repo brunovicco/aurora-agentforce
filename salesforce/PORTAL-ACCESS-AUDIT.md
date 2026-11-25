@@ -60,3 +60,7 @@ The collector also queries FieldPermissions for the eight policy objects and thr
 ## Extended grant collection evidence
 
 Revision `31acd83d3fabcfe312bcda5c0b4e6fcf72cf0575`: the local quality gate and all three GitHub Actions workflows passed. The extended collector completed successfully in the existing Developer Edition. The sanitized report contained no observed disallowed object grants, no positive field-grant object aggregates, no observed broad system grants, and no additional review gaps. The three actor source inventories remain explicitly incomplete; effective permissions and runtime access are unverified. No changes were made. The three group-resolution gaps were absent in this report, which is not proof of complete group or muting analysis. No raw identity data is retained here.
+
+## Account record access evidence candidate
+
+Run `bash scripts/sf-audit-portal-record-access.sh aurora-dev`. This administrator-side UserRecordAccess query checks the two synthetic account records for both synthetic users. Missing rows are unknown, not denied. It does not test actual customer sessions, guest access, FLS, other records, sharing rules or sharing sets. Query support for these external users must be established in the org; if unsupported, retain the gap and use the manual runtime matrix. No writes occur. Raw IDs remain in private temporary files.
