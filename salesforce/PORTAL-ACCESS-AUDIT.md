@@ -48,3 +48,7 @@ Run `bash scripts/sf-audit-portal-grants.sh aurora-dev` from the repository root
 ## First grant collection evidence — November 24, 2026
 
 Revision `c0c1bc62cf93e286bc0d286e68899b5fe5891947`: all four Salesforce queries and normalization completed in the existing development org. No disallowed object grants were observed in supplied customer rows. Both customer source inventories remain incomplete by design; guest inventory and group resolution remain outstanding. Effective permissions and runtime access remain unverified; zero mutations. Local tests: 183 passed, configured coverage 95.58% (collector itself not yet included), strict typing clean, Bandit zero findings across 1,282 lines including portal scripts, dependency audit no known vulnerabilities among audited packages. Ruff identified formatting/import issues corrected in the next revision.
+
+## Site guest collection
+
+The revised collector queries the exact Site name and checks its GuestUser relationship against GuestUserId and UserType. It includes profile-owned permission sets and guest assignments in local queries, but only the selected site's guest and the two synthetic customers enter the report. Missing or ambiguous site identity fails closed. Query compatibility remains to be checked in the org. Source completeness, group muting, FLS, system grants and sharing remain unverified.

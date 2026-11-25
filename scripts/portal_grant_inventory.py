@@ -38,12 +38,29 @@ def normalize(
     profile_sets: list[dict[str, Any]],
     assignments: list[dict[str, Any]],
     grants: list[dict[str, Any]],
+    sites: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not reconcile(users)["ready"]:
         raise ValueError("Customer reconciliation failed")
+    identities = {
+        label: next(row for row in users if row["Contact"]["Account"]["Name"] == account)
+        for label, (account, _, _) in EXPECTED.items()
+    }
+    if sites is not None:
+        if len(sites) != 1 or sites[0].get("Name") != "Aurora_Customer_Portal":
+            raise ValueError("Missing or ambiguous Aurora site")
+        guest = sites[0].get("GuestUser")
+        if (
+            not isinstance(guest, dict)
+            or guest.get("UserType") != "Guest"
+            or not guest.get("Id")
+            or guest["Id"] != sites[0].get("GuestUserId")
+            or guest["Id"] in {row["Id"] for row in identities.values()}
+        ):
+            raise ValueError("Invalid site guest identity")
+        identities["guest"] = guest
     actors = {}
-    for label, (account, _, _) in EXPECTED.items():
-        user = next(row for row in users if row["Contact"]["Account"]["Name"] == account)
+    for label, user in identities.items():
         profile_id = user.get("ProfileId")
         if not isinstance(profile_id, str) or not profile_id:
             raise ValueError("Missing profile identity")
@@ -72,11 +89,12 @@ def normalize(
             "sources_complete": False,
             "object_grants": object_grants,
         }
-    actors["guest"] = {
-        "groups_present": None,
-        "sources_complete": False,
-        "object_grants": [],
-    }
+    if "guest" not in actors:
+        actors["guest"] = {
+            "groups_present": None,
+            "sources_complete": False,
+            "object_grants": [],
+        }
     return {"actors": actors}
 
 
@@ -89,6 +107,7 @@ def main() -> None:
         load_rows(args.directory / "profiles.json"),
         load_rows(args.directory / "assignments.json"),
         load_rows(args.directory / "grants.json"),
+        load_rows(args.directory / "sites.json"),
     )
     print(json.dumps(review(evidence), indent=2))
 

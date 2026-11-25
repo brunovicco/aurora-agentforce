@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from scripts.portal_grant_inventory import FIELDS, load_rows, normalize
+from scripts.portal_grant_inventory import FIELDS, load_rows, main, normalize
 from scripts.portal_permission_review import review
 
 
@@ -75,3 +75,55 @@ def test_load_rows(tmp_path: Path, complete: bool) -> None:
     else:
         with pytest.raises(ValueError, match="Incomplete"):
             load_rows(path)
+
+
+def site() -> dict[str, Any]:
+    return {
+        "Name": "Aurora_Customer_Portal",
+        "GuestUserId": "guest-user",
+        "GuestUser": {"Id": "guest-user", "ProfileId": "guest-profile", "UserType": "Guest"},
+    }
+
+
+def test_guest_grant_collected() -> None:
+    profiles = [{"Id": "guest-set", "ProfileId": "guest-profile", "IsOwnedByProfile": True}]
+    grants = [
+        {
+            "ParentId": "guest-set",
+            "SObjectType": "Account",
+            **{field: field == "PermissionsRead" for field in FIELDS.values()},
+        }
+    ]
+    report = review(normalize(users(), profiles, [], grants, [site()]))
+    assert report["observed_disallowed_grants"] == [
+        {"actor": "guest", "object": "Account", "grant": "read"}
+    ]
+
+
+@pytest.mark.parametrize("mode", ["missing", "duplicate", "wrong_site", "wrong_user"])
+def test_invalid_site(mode: str) -> None:
+    sites = [site()]
+    if mode == "missing":
+        sites = []
+    elif mode == "duplicate":
+        sites.append(site())
+    elif mode == "wrong_site":
+        sites[0]["Name"] = "Other"
+    else:
+        sites[0]["GuestUser"]["UserType"] = "Standard"
+    with pytest.raises(ValueError):
+        normalize(users(), [], [], [], sites)
+
+
+def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    for name, rows in (
+        ("users", users()),
+        ("profiles", []),
+        ("assignments", []),
+        ("grants", []),
+        ("sites", [site()]),
+    ):
+        payload = {"status": 0, "result": {"done": True, "totalSize": len(rows), "records": rows}}
+        (tmp_path / f"{name}.json").write_text(json.dumps(payload))
+    monkeypatch.setattr("sys.argv", ["inventory", str(tmp_path)])
+    main()
