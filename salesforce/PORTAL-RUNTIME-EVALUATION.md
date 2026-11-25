@@ -43,3 +43,11 @@ Operator reported denial for Alice accessing Bob's profile, Bob accessing Alice'
 ## Account route observations — guest verification blocked
 
 Operator reported own-account-only data for both customers on `comm-my-account` and `account-management`. The guest check on `comm-my-account` was also reported as own data, an ambiguous and unexpected result for an unauthenticated principal. Treat P01 as unresolved and block further integration until a clean independent browser session confirms the actual identity and route behavior. If customer data is displayed without authentication, stop and contain exposure; do not expand grants. No claim of cross-account record isolation or read-only enforcement follows from these observations. Do not record P04/P05 as passed solely from own-account display. No org mutation performed by this documentation update.
+
+## Guest retest and direct Account record checks
+
+Operator retested `comm-my-account` in an independent guest session and reported redirect to login. The earlier ambiguous guest result was not reproduced; its cause is unknown. Direct `detail/<AccountId>` checks showed own Account A/B respectively for Alice/Bob, denial/login for both cross-account attempts, and denial/login for guest on Account A. Guest on Account B was not run. This supports read isolation in the tested routes only; read-only enforcement, FLS, other records and logout remain pending. All three CI workflows for `b11dde7` succeeded.
+
+## Next gate: Case creation surface
+
+The versioned `contactsupport` view contains `forceCommunity:contactSupportForm` configured with `NewCommunityCase`, `GuestCommunityCase` and attachments enabled. The generic `createrecord` view binds `actionApiName` to a route attribute. These are potential direct write paths; existence is not proof of effective authorization. Inspect `contactsupport` and `case` in isolated customer and guest sessions first, without submitting or uploading anything. A rendered form or empty list does not establish creation permission or denial. Record whether the form, existing records, or explicit denial are displayed; stop if unauthorized records appear. Before any synthetic write attempt, review effective grants and establish a narrowly scoped before/after record audit and separate operator approval. Do not activate flows or connect agents.
