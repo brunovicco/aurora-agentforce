@@ -11,11 +11,8 @@ from scripts.portal_compare import canonical, comparable
 from scripts.portal_prepare import BUNDLE
 from scripts.portal_scope import payload, verify_candidate
 
-
 EMPTY_REGION_PATHS = {
-    f"{BUNDLE.as_posix()}/themes/atendimentoAoCliente.json": (
-        ("views", 1, "regions", 1),
-    ),
+    f"{BUNDLE.as_posix()}/themes/atendimentoAoCliente.json": (("views", 1, "regions", 1),),
     f"{BUNDLE.as_posix()}/views/início.json": tuple(("regions", i) for i in range(1, 5)),
 }
 
@@ -23,18 +20,17 @@ EMPTY_REGION_PATHS = {
 def region_at(document: Any, path: tuple[str | int, ...]) -> Any:
     """Resolve a fixed structural path without modifying the document."""
     for part in path:
-        if isinstance(part, str) and isinstance(document, dict) and part in document:
-            document = document[part]
-        elif isinstance(part, int) and isinstance(document, list) and part < len(document):
+        if (
+            isinstance(part, str) and isinstance(document, dict) and part in document
+            or isinstance(part, int) and isinstance(document, list) and part < len(document)
+        ):
             document = document[part]
         else:
             return None
     return document
 
 
-def reconcile_empty_regions(
-    name: str, expected: Any, actual: Any
-) -> tuple[Any, list[str]]:
+def reconcile_empty_regions(name: str, expected: Any, actual: Any) -> tuple[Any, list[str]]:
     """Reconcile only the observed omission of explicitly empty region arrays."""
     normalized = deepcopy(actual)
     omissions = []

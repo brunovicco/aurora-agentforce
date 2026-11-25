@@ -61,7 +61,12 @@ def test_mismatch_diagnostic_keeps_gate_closed() -> None:
 
 def test_observed_empty_region_omission() -> None:
     name = next(name for name in EMPTY_REGION_PATHS if name.endswith("início.json"))
-    region: dict[str, object] = {"type": "region", "id": "synthetic", "regionName": "featured", "components": []}
+    region: dict[str, object] = {
+        "type": "region",
+        "id": "synthetic",
+        "regionName": "featured",
+        "components": [],
+    }
     candidate: dict[str, list[dict[str, object]]] = {"regions": [{}, region]}
     actual = deepcopy(candidate)
     del actual["regions"][1]["components"]
@@ -69,16 +74,19 @@ def test_observed_empty_region_omission() -> None:
     assert result["strict_metadata_matches"] is False
     assert result["metadata_matches"] is True
     assert result["raw_mismatch_count"] == 1
-    assert result["empty_region_omissions"] == [
-        {"file": name, "paths": ["$/regions/1/components"]}
-    ]
+    assert result["empty_region_omissions"] == [{"file": name, "paths": ["$/regions/1/components"]}]
     assert "components" not in actual["regions"][1]
 
 
 @pytest.mark.parametrize("mode", ["nonempty", "wrong_id", "other_path", "null", "other_file"])
 def test_empty_region_exception_is_narrow(mode: str) -> None:
     name = next(name for name in EMPTY_REGION_PATHS if name.endswith("início.json"))
-    region: dict[str, object] = {"type": "region", "id": "synthetic", "regionName": "featured", "components": []}
+    region: dict[str, object] = {
+        "type": "region",
+        "id": "synthetic",
+        "regionName": "featured",
+        "components": [],
+    }
     candidate: dict[str, list[dict[str, object]]] = {"regions": [{}, region]}
     if mode == "nonempty":
         region["components"] = [{"type": "component"}]
