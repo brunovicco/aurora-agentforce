@@ -2,12 +2,58 @@
 
 import argparse
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 from scripts.portal_backup import verify_backup
 from scripts.portal_compare import canonical, comparable
+from scripts.portal_prepare import BUNDLE
 from scripts.portal_scope import payload, verify_candidate
+
+
+EMPTY_REGION_PATHS = {
+    f"{BUNDLE.as_posix()}/themes/atendimentoAoCliente.json": (
+        ("views", 1, "regions", 1),
+    ),
+    f"{BUNDLE.as_posix()}/views/início.json": tuple(("regions", i) for i in range(1, 5)),
+}
+
+
+def region_at(document: Any, path: tuple[str | int, ...]) -> Any:
+    """Resolve a fixed structural path without modifying the document."""
+    for part in path:
+        if isinstance(part, str) and isinstance(document, dict) and part in document:
+            document = document[part]
+        elif isinstance(part, int) and isinstance(document, list) and part < len(document):
+            document = document[part]
+        else:
+            return None
+    return document
+
+
+def reconcile_empty_regions(
+    name: str, expected: Any, actual: Any
+) -> tuple[Any, list[str]]:
+    """Reconcile only the observed omission of explicitly empty region arrays."""
+    normalized = deepcopy(actual)
+    omissions = []
+    for path in EMPTY_REGION_PATHS.get(name, ()):
+        before = region_at(expected, path)
+        after = region_at(normalized, path)
+        if (
+            isinstance(before, dict)
+            and isinstance(after, dict)
+            and before.get("type") == after.get("type") == "region"
+            and isinstance(before.get("id"), str)
+            and before.get("id") == after.get("id")
+            and before.get("regionName") == after.get("regionName")
+            and before.get("components") == []
+            and "components" not in after
+        ):
+            after["components"] = []
+            omissions.append("$/" + "/".join(map(str, path)) + "/components")
+    return normalized, omissions
 
 
 def differences(expected: Any, actual: Any, path: str = "$") -> list[dict[str, str]]:
@@ -50,9 +96,17 @@ def assess(
     mismatched = {
         name for name in expected.keys() & actual.keys() if expected[name] != actual[name]
     }
+    raw_mismatched = mismatched.copy()
     diagnostics = []
-    for name in sorted(mismatched):
-        changes = differences(expected[name], actual[name])
+    omissions = []
+    for name in sorted(raw_mismatched):
+        normalized, paths = reconcile_empty_regions(name, expected[name], actual[name])
+        if paths:
+            omissions.append({"file": name, "paths": paths})
+        if name in approved and normalized == expected[name]:
+            mismatched.remove(name)
+            continue
+        changes = differences(expected[name], normalized if name in approved else actual[name])
         diagnostics.append(
             {
                 "file": name,
@@ -68,6 +122,9 @@ def assess(
         "missing_count": len(missing),
         "candidate_mismatch_count": len(mismatched & approved.keys()),
         "outside_scope_mismatch_count": len(mismatched - approved.keys()),
+        "raw_mismatch_count": len(raw_mismatched),
+        "empty_region_omissions": omissions,
+        "strict_metadata_matches": not added and not missing and not raw_mismatched,
         "mismatch_diagnostics": diagnostics,
         "metadata_matches": not added and not missing and not mismatched,
         "publication_verified": False,

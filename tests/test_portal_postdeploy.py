@@ -1,7 +1,9 @@
 """Tests for post-deployment metadata scope verification."""
 
+from copy import deepcopy
+
 import pytest
-from scripts.portal_postdeploy import assess, differences
+from scripts.portal_postdeploy import EMPTY_REGION_PATHS, assess, differences
 
 
 def test_matching_candidate_and_preserved_scope() -> None:
@@ -55,3 +57,40 @@ def test_mismatch_diagnostic_keeps_gate_closed() -> None:
             "truncated": False,
         }
     ]
+
+
+def test_observed_empty_region_omission() -> None:
+    name = next(name for name in EMPTY_REGION_PATHS if name.endswith("início.json"))
+    region: dict[str, object] = {"type": "region", "id": "synthetic", "regionName": "featured", "components": []}
+    candidate: dict[str, list[dict[str, object]]] = {"regions": [{}, region]}
+    actual = deepcopy(candidate)
+    del actual["regions"][1]["components"]
+    result = assess({name: candidate}, {name: actual}, {name: candidate})
+    assert result["strict_metadata_matches"] is False
+    assert result["metadata_matches"] is True
+    assert result["raw_mismatch_count"] == 1
+    assert result["empty_region_omissions"] == [
+        {"file": name, "paths": ["$/regions/1/components"]}
+    ]
+    assert "components" not in actual["regions"][1]
+
+
+@pytest.mark.parametrize("mode", ["nonempty", "wrong_id", "other_path", "null", "other_file"])
+def test_empty_region_exception_is_narrow(mode: str) -> None:
+    name = next(name for name in EMPTY_REGION_PATHS if name.endswith("início.json"))
+    region: dict[str, object] = {"type": "region", "id": "synthetic", "regionName": "featured", "components": []}
+    candidate: dict[str, list[dict[str, object]]] = {"regions": [{}, region]}
+    if mode == "nonempty":
+        region["components"] = [{"type": "component"}]
+    if mode == "other_path":
+        candidate["regions"] = [{}, {}, {}, {}, {}, region]
+    index = len(candidate["regions"]) - 1
+    actual = deepcopy(candidate)
+    del actual["regions"][index]["components"]
+    if mode == "wrong_id":
+        actual["regions"][index]["id"] = "other"
+    if mode == "null":
+        actual["regions"][index]["components"] = None
+    if mode == "other_file":
+        name = "other.json"
+    assert assess({name: candidate}, {name: actual}, {name: candidate})["metadata_matches"] is False
