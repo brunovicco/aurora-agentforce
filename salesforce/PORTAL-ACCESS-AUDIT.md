@@ -64,3 +64,7 @@ Revision `31acd83d3fabcfe312bcda5c0b4e6fcf72cf0575`: the local quality gate and 
 ## Account record access evidence candidate
 
 Run `bash scripts/sf-audit-portal-record-access.sh aurora-dev`. This administrator-side UserRecordAccess query checks the two synthetic account records for both synthetic users. Missing rows are unknown, not denied. It does not test actual customer sessions, guest access, FLS, other records, sharing rules or sharing sets. Query support for these external users must be established in the org; if unsupported, retain the gap and use the manual runtime matrix. No writes occur. Raw IDs remain in private temporary files.
+
+## Account record access evidence
+
+Revision `30040463157fbbb2110725b58f722d4fc26d83cb`: read-only administrator-side UserRecordAccess audit completed successfully in the existing Developer Edition on macOS. All four actor/account combinations returned evidence. Both customers had read but not edit access to their own synthetic accounts; neither had read or edit access to the other account. Complete for this two-account sample; zero mutations. All three GitHub Actions workflows passed for the revision. This is not a real customer session test, does not cover guest or other objects, and does not establish effective FLS, sharing configuration completeness, or Agentforce authorization. No record identifiers or credentials retained in this document.
