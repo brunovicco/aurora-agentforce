@@ -6,6 +6,10 @@
 public with sharing class AuroraVerifiedOrdersClient {
     public class UnavailableException extends Exception {}
 
+    private static final Set<String> ORDER_STATUSES = new Set<String>{
+        'processing', 'shipped', 'delivered', 'cancelled'
+    };
+
     public class OrderResult {
         public String order_id;
         public String product;
@@ -33,8 +37,7 @@ public with sharing class AuroraVerifiedOrdersClient {
             );
             if (result == null || !orderId.equals(result.order_id) ||
                 String.isBlank(result.product) ||
-                !new Set<String>{'processing', 'shipped', 'delivered', 'cancelled'}
-                    .contains(result.status)) {
+                !ORDER_STATUSES.contains(result.status)) {
                 throw new UnavailableException('Order unavailable.');
             }
             return result;
