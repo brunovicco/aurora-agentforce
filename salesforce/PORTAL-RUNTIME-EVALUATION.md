@@ -67,3 +67,7 @@ A narrow marker audit is available: `bash scripts/sf-audit-portal-case-probe.sh 
 ## Case probe baseline evidence
 
 Operator ran the marker audit for two distinct random synthetic subjects on revision `d5eb786`. Both returned matching_case_count=0, exact_subject_only, runtime_access_verified=false and mutations=0. All three CI workflows passed. Marker values are retained locally, not committed. No submission authorized. Before any probe, inspect Case in Flow Trigger Explorer (create/update, including asynchronous paths), active Case Apex triggers, Case assignment/auto-response/escalation rules, and effective Case permissions for both customers. Do not activate, disable or edit automation during review. Recheck the marker baseline immediately before any separately approved submission. An exact-subject count cannot establish absence of other side effects.
+
+## Case automation inventory observations
+
+Operator Tooling API queries returned zero ApexTrigger rows for TableEnumOrId Case and exactly one FlowDefinition with non-null ActiveVersionId, AbrirCasoPosVenda. The versioned Flow is an autolaunched flow, but the active org version has not been compared to the source. These queries do not exhaust managed automation, assignment, auto-response, escalation or other side effects. Effective customer Case permissions and administrative automation review remain pending. No write attempt authorized. CI status of the preceding revision was reviewed separately.
