@@ -20,13 +20,14 @@ EMPTY_REGION_PATHS = {
 def region_at(document: Any, path: tuple[str | int, ...]) -> Any:
     """Resolve a fixed structural path without modifying the document."""
     for part in path:
-        if (
-            isinstance(part, str) and isinstance(document, dict) and part in document
-            or isinstance(part, int) and isinstance(document, list) and part < len(document)
-        ):
+        if isinstance(part, str):
+            if not isinstance(document, dict) or part not in document:
+                return None
             document = document[part]
         else:
-            return None
+            if not isinstance(document, list) or not 0 <= part < len(document):
+                return None
+            document = document[part]
     return document
 
 

@@ -85,3 +85,7 @@ Revision `28eddbd`: operator retrieve succeeded in 22.27 seconds. All 120 payloa
 ## Builder review gate
 
 Open Aurora Customer Portal in Experience Builder without editing or publishing. Record current publication status and whether the live site already shows the new design. In desktop/mobile preview verify the Aurora headline and assistant-unavailable banner, blue branding, empty main content regions, no search component or messaging widget, login/logout affordances and any visible navigation or errors. Note unexpected links; do not infer authorization from hidden navigation. Keep raw evidence private and record only redacted observations. If live version already reflects the change, do not assume a separate publish is needed. Any explicit publication requires review of effective access and separate approval. Never attach the legacy agent.
+
+## Initial Builder visual evidence
+
+Operator screenshots show Aurora Customer Portal active, Aura framework, Aurora headline and assistant-unavailable banner visible in Builder editor, navy navigation, empty layout placeholders, and no visible messaging widget or rendering error. HOME and TÓPICOS remain in navigation. Search is an editor placeholder; actual search visibility, desktop/mobile preview, guest/customer behavior and published content are not yet verified. Screenshots remain outside Git. Revision `1283ff9` had 226 passing tests but lint/format/type checking failed on path traversal; the next revision separates string and integer indexing to address these findings. No portal metadata change.
