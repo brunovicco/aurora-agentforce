@@ -3,11 +3,12 @@
 import argparse
 import copy
 import hashlib
+import io
 import json
 import re
 import stat
 from pathlib import Path, PurePosixPath
-from xml.etree.ElementTree import Element, tostring
+from xml.etree.ElementTree import Element, tostring  # nosec B405 - construction only; defused parse
 from zipfile import ZipFile
 
 from defusedxml import ElementTree as ET
@@ -60,7 +61,12 @@ MANIFEST = """<?xml version="1.0" encoding="UTF-8"?>
 
 
 def parse(data: bytes) -> Element:
-    return ET.fromstring(data, forbid_dtd=True, forbid_entities=True, forbid_external=True)
+    root = ET.parse(
+        io.BytesIO(data), forbid_dtd=True, forbid_entities=True, forbid_external=True
+    ).getroot()
+    if root is None:
+        raise ValueError("Missing profile root")
+    return root
 
 
 def read_profile(path: Path, digest: str) -> Element:
@@ -111,6 +117,7 @@ def prepare(root: Element) -> tuple[Element, Element, dict[str, object]]:
     restore = Element(NS + "Profile")
     candidate = Element(NS + "Profile")
     seen = set()
+    outside_fields: dict[str, int] = {}
     changed_fields = 0
     changed_objects = 0
     for row in root.findall(NS + "fieldPermissions"):
@@ -121,7 +128,8 @@ def prepare(root: Element) -> tuple[Element, Element, dict[str, object]]:
         obj = field.split(".", 1)[0]
         current = flags(row, ("editable", "readable"))
         if obj not in KEEP | DENY:
-            raise ValueError("Unexpected field object")
+            outside_fields[obj] = outside_fields.get(obj, 0) + 1
+            continue
         if obj in DENY and "true" in current.values():
             restore.append(copy.deepcopy(row))
             target = copy.deepcopy(row)
@@ -134,12 +142,12 @@ def prepare(root: Element) -> tuple[Element, Element, dict[str, object]]:
             changed_fields += 1
     objects = set()
     for row in root.findall(NS + "objectPermissions"):
-        obj = row.findtext(NS + "object")
-        if obj not in KEEP | DENY or obj in objects:
+        object_name = row.findtext(NS + "object")
+        if object_name is None or object_name not in KEEP | DENY or object_name in objects:
             raise ValueError("Unexpected or duplicate object entry")
-        objects.add(obj)
+        objects.add(object_name)
         current = flags(row, FLAGS)
-        if obj in KEEP:
+        if object_name in KEEP:
             if any(
                 value != ("true" if key == "allowRead" else "false")
                 for key, value in current.items()
@@ -157,10 +165,12 @@ def prepare(root: Element) -> tuple[Element, Element, dict[str, object]]:
         changed_objects += 1
     if objects != KEEP | DENY:
         raise ValueError("Object coverage differs from reviewed baseline")
-    return restore, candidate, {
+    report: dict[str, object] = {
         "scoped_objects": changed_objects,
         "scoped_fields": changed_fields,
         "preserved_objects": sorted(KEEP),
+        "outside_scope_field_counts": dict(sorted(outside_fields.items())),
+        "outside_scope_review_required": bool(outside_fields),
         "unverified_objects": [
             "AuroraCaseApproval__c",
             "MessagingEndUser",
@@ -171,6 +181,7 @@ def prepare(root: Element) -> tuple[Element, Element, dict[str, object]]:
         "effective_permissions_verified": False,
         "deployment_authorized": False,
     }
+    return restore, candidate, report
 
 
 def main() -> None:

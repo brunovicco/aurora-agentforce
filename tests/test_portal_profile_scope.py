@@ -40,3 +40,26 @@ def test_missing_object_blocks() -> None:
     root.remove(root[0])
     with pytest.raises(ValueError, match="coverage"):
         prepare(root)
+
+
+def test_outside_scope_fields_are_reported_not_changed() -> None:
+    root = baseline()
+    row = SubElement(root, NS + "fieldPermissions")
+    SubElement(row, NS + "field").text = "AuroraCaseApproval__c.Example__c"
+    SubElement(row, NS + "editable").text = "true"
+    SubElement(row, NS + "readable").text = "true"
+    restore, candidate, report = prepare(root)
+    assert report["outside_scope_field_counts"] == {"AuroraCaseApproval__c": 1}
+    assert report["outside_scope_review_required"] is True
+    assert restore.findall(NS + "fieldPermissions") == []
+    assert candidate.findall(NS + "fieldPermissions") == []
+    assert row.findtext(NS + "editable") == "true"
+    assert report["deployment_authorized"] is False
+
+
+def test_unexpected_object_still_blocks() -> None:
+    root = baseline()
+    row = SubElement(root, NS + "objectPermissions")
+    SubElement(row, NS + "object").text = "Unexpected__c"
+    with pytest.raises(ValueError, match="Unexpected"):
+        prepare(root)
