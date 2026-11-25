@@ -37,3 +37,11 @@ Revision `94c5e6f`: the operator retained a private permanent copy of the backup
 ## Compare candidate against retained backup
 
 Run `uv run python -m scripts.portal_compare /private/backup-directory` from repository root. This compares the sanitized candidate ExperienceBundle against the original verified ZIP without extracting it. JSON semantic equality ignores whitespace and object key order; Unicode filenames are normalized to NFC, collisions rejected. Only relative names of explicitly approved changed files and aggregate counts are printed. The comparison does not inspect live drift, publication state, or differences in Site/Network. Do not deploy the full candidate manifest based on this report. Any extra change or file inventory mismatch requires investigation. A scoped package and its own dry-run are required next.
+
+## Scope comparison evidence
+
+Revision `d61fc09`: all three CI workflows passed. The operator compared the verified original backup with the candidate: 117 files on each side, exactly the three intended JSON changes, no unexpected changes, additions or removals. No live drift evidence or deployment authorization was produced.
+
+## Scoped validation
+
+Run `bash scripts/sf-validate-portal-scope.sh aurora-dev /private/original-backup-directory`. The script retrieves a fresh copy of the same three components into a private temporary directory, verifies both ZIPs and compares the component payloads (JSON semantically; other files bytewise). A difference blocks further work, including differences caused by Salesforce serialization. It then rechecks the three-file candidate scope and creates a private ExperienceBundle-only Metadata API directory with a single-member manifest, validates it using dry-run and prints a package digest. No site/network deployment or publication occurs. The temporary fresh retrieve is deleted; original backup is preserved. Drift checking is a point-in-time observation, not a lock. Keep Builder edits frozen. The package is retained privately for subsequent review; do not deploy it without separate approval.
