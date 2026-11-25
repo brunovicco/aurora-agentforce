@@ -62,7 +62,10 @@ def normalize(
             if row.get("ParentId") not in sources or row.get("SObjectType") not in OBJECTS:
                 continue
             object_grants.append(
-                {"object": row["SObjectType"], **{flag: row[field] for flag, field in FIELDS.items()}}
+                {
+                    "object": row["SObjectType"],
+                    **{flag: row[field] for flag, field in FIELDS.items()},
+                }
             )
         actors[label] = {
             "groups_present": groups_present,

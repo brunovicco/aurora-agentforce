@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from scripts.portal_customer_inventory import main, reconcile
 
 
