@@ -57,3 +57,7 @@ Revision `9521a988db9fb0d1fa04e86610011bed07fe2bc2`: fresh retrieve succeeded (6
 ## Approved-package preflight
 
 Before any authorized deployment, keep concurrent Builder changes frozen, capture published status and verify the legacy agent is disconnected. Run `bash scripts/sf-check-portal-deploy.sh aurora-dev /private/original-backup-directory /private/approved-candidate-directory APPROVED_SHA256`. This read-only preflight verifies exact candidate file inventory and bytes against the repository, checks the previously observed package digest, retrieves a fresh copy of the original three components, and checks no drift. It never deploys. If any check fails, stop. Only deploy the exact reviewed ExperienceBundle package with a separately approved command; inspect actual publication behavior and do not manually publish until reviewed.
+
+## Final preflight evidence
+
+Revision `001f4a86656b61b0abde0bd1dd4e97bf68b2a052`: all three CI workflows succeeded. Operator executed the approved-package preflight; fresh metadata retrieve succeeded in 6.07 seconds, archive integrity passed, live payload matched original backup and candidate inventory/bytes/digest matched the validated package. No deployment performed. Publication state and absence of a legacy messaging channel still require operator confirmation. Freeze concurrent changes; repeat preflight immediately before separately approved deployment if any time or change has intervened.
