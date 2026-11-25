@@ -45,3 +45,7 @@ Revision `d61fc09`: all three CI workflows passed. The operator compared the ver
 ## Scoped validation
 
 Run `bash scripts/sf-validate-portal-scope.sh aurora-dev /private/original-backup-directory`. The script retrieves a fresh copy of the same three components into a private temporary directory, verifies both ZIPs and compares the component payloads (JSON semantically; other files bytewise). A difference blocks further work, including differences caused by Salesforce serialization. It then rechecks the three-file candidate scope and creates a private ExperienceBundle-only Metadata API directory with a single-member manifest, validates it using dry-run and prints a package digest. No site/network deployment or publication occurs. The temporary fresh retrieve is deleted; original backup is preserved. Drift checking is a point-in-time observation, not a lock. Keep Builder edits frozen. The package is retained privately for subsequent review; do not deploy it without separate approval.
+
+## First scoped dry-run evidence
+
+Revision `ea34756`: fresh retrieve succeeded (9.40 seconds); payload matched original backup and candidate scope matched. The ExperienceBundle-only dry-run failed because the package generator omitted the sibling `experiences/Aurora_Customer_Portal1.site-meta.xml` descriptor. The next revision includes that existing descriptor, checks it bytewise against the retained backup, and tests exact package inventory. No permanent deployment occurred. Retry the scoped validation; do not reuse the earlier incomplete package.

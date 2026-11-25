@@ -11,6 +11,8 @@ from scripts.portal_backup import verify_backup
 from scripts.portal_compare import canonical, comparable, compare
 from scripts.portal_prepare import BUNDLE, ROOT, validate
 
+DESCRIPTOR = BUNDLE.with_suffix(".site-meta.xml")
+
 MANIFEST = """<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
@@ -54,10 +56,19 @@ def package_digest(root: Path) -> str:
     return digest.hexdigest()
 
 
+def build_package(template: Path, output: Path) -> None:
+    """Copy the complete ExperienceBundle, including its sibling descriptor."""
+    output.mkdir(mode=0o700)
+    shutil.copytree(template / BUNDLE, output / BUNDLE)
+    shutil.copyfile(template / DESCRIPTOR, output / DESCRIPTOR)
+    (output / "package.xml").write_text(MANIFEST)
+
+
 def prepare(original: Path, fresh: Path, output: Path) -> dict[str, object]:
     original_zip = verify_backup(original)
     fresh_zip = verify_backup(fresh)
-    if payload(original_zip) != payload(fresh_zip):
+    original_payload = payload(original_zip)
+    if original_payload != payload(fresh_zip):
         raise ValueError("Live metadata differs from retained backup; stop")
     validate(ROOT)
     report = compare(original_zip, ROOT / BUNDLE)
@@ -65,9 +76,9 @@ def prepare(original: Path, fresh: Path, output: Path) -> dict[str, object]:
         raise ValueError("Candidate scope mismatch")
     if output.exists() or output.resolve().is_relative_to(ROOT.parents[1]):
         raise ValueError("Output must be new and outside repository")
-    output.mkdir(mode=0o700)
-    shutil.copytree(ROOT / BUNDLE, output / BUNDLE)
-    (output / "package.xml").write_text(MANIFEST)
+    if original_payload.get(DESCRIPTOR.as_posix()) != (ROOT / DESCRIPTOR).read_bytes():
+        raise ValueError("ExperienceBundle descriptor differs from backup")
+    build_package(ROOT, output)
     return {
         "live_drift_verified": True,
         "scope_matches": True,
