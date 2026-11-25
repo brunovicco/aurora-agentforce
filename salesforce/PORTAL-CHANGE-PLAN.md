@@ -61,3 +61,11 @@ Before any authorized deployment, keep concurrent Builder changes frozen, captur
 ## Final preflight evidence
 
 Revision `001f4a86656b61b0abde0bd1dd4e97bf68b2a052`: all three CI workflows succeeded. Operator executed the approved-package preflight; fresh metadata retrieve succeeded in 6.07 seconds, archive integrity passed, live payload matched original backup and candidate inventory/bytes/digest matched the validated package. No deployment performed. Publication state and absence of a legacy messaging channel still require operator confirmation. Freeze concurrent changes; repeat preflight immediately before separately approved deployment if any time or change has intervened.
+
+## Controlled deployment evidence
+
+The operator confirmed all four change approval controls (published state recorded, legacy agent disconnected, no concurrent Builder edits, permanent ExperienceBundle-only deploy authorized). Immediate preflight passed: fresh retrieve 14.95 seconds, no drift, candidate integrity verified. Salesforce API 68.0 permanent deployment succeeded, 1/1 ExperienceBundle, 11.21 seconds. Apex tests and source tracking skipped. The submitted manifest contained only the ExperienceBundle. Actual post-deploy metadata, publication state, effective security and rollback execution remain unverified. No manual publication was reported. Do not connect the legacy agent.
+
+## Post-deployment verification
+
+Run `bash scripts/sf-check-portal-postdeploy.sh aurora-dev /private/original-backup-directory /private/approved-candidate-directory APPROVED_SHA256`. It retrieves the three metadata components again, verifies the approved candidate bytes, overlays only the approved ExperienceBundle payload onto the original backup in memory and compares with the retrieved payload. JSON is compared semantically and other files bytewise. Differences block verification and require review, including platform serialization changes. This is not a publication or runtime check. It does not deploy, publish or modify permissions. If the retrieved metadata matches, inspect Builder preview and the current publication state separately before authorizing publication.
