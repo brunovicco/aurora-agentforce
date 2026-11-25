@@ -27,3 +27,7 @@ The evaluator scores reported evidence deterministically, not independently. Mis
 ## Before Agentforce integration
 
 Require real session isolation evidence, trusted current-conversation identity, explicit authorization of action execution, separate broker credentials, verified read action tests and independent Case approval controls. The verified-actions candidate in PR #5 remains separate; no connection is authorized by the portal evaluator.
+
+## First published-site observations (2026-11-25)
+
+Publication succeeded in the dedicated development org after operator approval. Alice independently logged in successfully after publication, according to operator report; screenshot shows the published Aurora home. Verify the displayed profile identity before marking P02 passed. Bob and a fresh anonymous session must be tested separately after publication. Earlier guest login challenge and administrator-side record access are preliminary evidence, not substitutes for post-publication direct-route tests. Do not enable any messaging channel. Stop on unexpected business-data disclosure or mutation.
