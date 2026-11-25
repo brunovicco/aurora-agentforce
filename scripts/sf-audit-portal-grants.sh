@@ -14,5 +14,7 @@ query "$1" "SELECT Name, GuestUserId, GuestUser.Id, GuestUser.ProfileId, GuestUs
 query "$1" "SELECT Id, ProfileId, IsOwnedByProfile FROM PermissionSet WHERE IsOwnedByProfile = true" "$private_dir/profiles.json"
 query "$1" "SELECT AssigneeId, PermissionSetId, PermissionSetGroupId FROM PermissionSetAssignment WHERE Assignee.Contact.Account.Name IN ('Aurora Demo Account A', 'Aurora Demo Account B') OR Assignee.UserType = 'Guest'" "$private_dir/assignments.json"
 query "$1" "SELECT ParentId, SObjectType, PermissionsRead, PermissionsCreate, PermissionsEdit, PermissionsDelete, PermissionsViewAllRecords, PermissionsModifyAllRecords FROM ObjectPermissions WHERE SObjectType IN ('Account', 'Contact', 'User', 'Case', 'AuroraCaseApproval__c', 'Order', 'MessagingSession', 'MessagingEndUser')" "$private_dir/grants.json"
+query "$1" "SELECT ParentId, SObjectType, Field, PermissionsRead, PermissionsEdit FROM FieldPermissions WHERE SObjectType IN ('Account', 'Contact', 'User', 'Case', 'AuroraCaseApproval__c', 'Order', 'MessagingSession', 'MessagingEndUser')" "$private_dir/fields.json"
+query "$1" "SELECT Id, PermissionsViewAllData, PermissionsModifyAllData, PermissionsManageUsers FROM PermissionSet" "$private_dir/system.json"
 cd "$root"
 uv run python -m scripts.portal_grant_inventory "$private_dir"

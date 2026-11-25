@@ -122,8 +122,45 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         ("assignments", []),
         ("grants", []),
         ("sites", [site()]),
+        ("fields", []),
+        ("system", []),
     ):
         payload = {"status": 0, "result": {"done": True, "totalSize": len(rows), "records": rows}}
         (tmp_path / f"{name}.json").write_text(json.dumps(payload))
     monkeypatch.setattr("sys.argv", ["inventory", str(tmp_path)])
     main()
+
+
+def test_field_and_system_grants() -> None:
+    profiles = [{"Id": "guest-set", "ProfileId": "guest-profile", "IsOwnedByProfile": True}]
+    fields = [
+        {
+            "ParentId": "guest-set",
+            "SObjectType": "Contact",
+            "Field": "Contact.Email",
+            "PermissionsRead": True,
+            "PermissionsEdit": False,
+        }
+    ]
+    system = [
+        {
+            "Id": "guest-set",
+            "PermissionsViewAllData": True,
+            "PermissionsModifyAllData": False,
+            "PermissionsManageUsers": False,
+        }
+    ]
+    result = normalize(users(), profiles, [], [], [site()], fields, system)
+    assert result["field_grant_objects"] == [
+        {"actor": "guest", "object": "Contact", "grant": "read"}
+    ]
+    assert result["observed_broad_system_grants"] == [
+        {"actor": "guest", "permission": "PermissionsViewAllData"}
+    ]
+    assert "customer_a:profile_source_missing_or_ambiguous" in result["additional_review_gaps"]
+
+
+def test_missing_system_source() -> None:
+    profiles = [{"Id": "guest-set", "ProfileId": "guest-profile", "IsOwnedByProfile": True}]
+    result = normalize(users(), profiles, [], [], [site()], [], [])
+    assert "guest:system_source_missing" in result["additional_review_gaps"]

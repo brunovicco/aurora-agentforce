@@ -52,3 +52,7 @@ Revision `c0c1bc62cf93e286bc0d286e68899b5fe5891947`: all four Salesforce queries
 ## Site guest collection
 
 The revised collector queries the exact Site name and checks its GuestUser relationship against GuestUserId and UserType. It includes profile-owned permission sets and guest assignments in local queries, but only the selected site's guest and the two synthetic customers enter the report. Missing or ambiguous site identity fails closed. Query compatibility remains to be checked in the org. Source completeness, group muting, FLS, system grants and sharing remain unverified.
+
+## Field and broad system grants
+
+The collector also queries FieldPermissions for the eight policy objects and three broad PermissionSet flags (View All Data, Modify All Data, Manage Users). The sanitized report aggregates positive field grants by actor/object/read-or-edit without exposing field values or identifiers. These are observed grants, not effective FLS or a complete system permission audit. Missing profile sources and missing system rows are explicit gaps. Queries may return substantial org-wide metadata; incomplete responses are rejected. No changes are made. Permission-set group composition, muting, sharing, field-level allowlists and runtime authorization still require separate review.

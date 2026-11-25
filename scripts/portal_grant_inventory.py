@@ -8,6 +8,8 @@ from typing import Any
 from scripts.portal_customer_inventory import EXPECTED, reconcile
 from scripts.portal_permission_review import OBJECTS, review
 
+SYSTEM_FLAGS = ("PermissionsViewAllData", "PermissionsModifyAllData", "PermissionsManageUsers")
+
 FIELDS = {
     "read": "PermissionsRead",
     "create": "PermissionsCreate",
@@ -39,6 +41,8 @@ def normalize(
     assignments: list[dict[str, Any]],
     grants: list[dict[str, Any]],
     sites: list[dict[str, Any]] | None = None,
+    field_grants: list[dict[str, Any]] | None = None,
+    system_grants: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not reconcile(users)["ready"]:
         raise ValueError("Customer reconciliation failed")
@@ -60,6 +64,9 @@ def normalize(
             raise ValueError("Invalid site guest identity")
         identities["guest"] = guest
     actors = {}
+    field_findings: set[tuple[str, str, str]] = set()
+    system_findings: set[tuple[str, str]] = set()
+    gaps: set[str] = set()
     for label, user in identities.items():
         profile_id = user.get("ProfileId")
         if not isinstance(profile_id, str) or not profile_id:
@@ -74,6 +81,32 @@ def normalize(
         sources = set(owned) | {
             row["PermissionSetId"] for row in assigned if row.get("PermissionSetId")
         }
+        if len(owned) != 1:
+            gaps.add(f"{label}:profile_source_missing_or_ambiguous")
+        if field_grants is None:
+            gaps.add(f"{label}:field_inventory_missing")
+        else:
+            for row in field_grants:
+                if row.get("ParentId") not in sources or row.get("SObjectType") not in OBJECTS:
+                    continue
+                name = row["SObjectType"]
+                for flag, key in (("read", "PermissionsRead"), ("edit", "PermissionsEdit")):
+                    if not isinstance(row.get(key), bool):
+                        raise ValueError("Invalid field permission flag")
+                    if row[key]:
+                        field_findings.add((label, name, flag))
+        if system_grants is None:
+            gaps.add(f"{label}:system_inventory_missing")
+        else:
+            matched = [row for row in system_grants if row.get("Id") in sources]
+            if {row["Id"] for row in matched} != sources:
+                gaps.add(f"{label}:system_source_missing")
+            for row in matched:
+                for flag in SYSTEM_FLAGS:
+                    if not isinstance(row.get(flag), bool):
+                        raise ValueError("Invalid system permission flag")
+                    if row[flag]:
+                        system_findings.add((label, flag))
         object_grants = []
         for row in grants:
             if row.get("ParentId") not in sources or row.get("SObjectType") not in OBJECTS:
@@ -95,7 +128,17 @@ def normalize(
             "sources_complete": False,
             "object_grants": [],
         }
-    return {"actors": actors}
+    return {
+        "actors": actors,
+        "field_grant_objects": [
+            {"actor": actor, "object": name, "grant": flag}
+            for actor, name, flag in sorted(field_findings)
+        ],
+        "observed_broad_system_grants": [
+            {"actor": actor, "permission": flag} for actor, flag in sorted(system_findings)
+        ],
+        "additional_review_gaps": sorted(gaps),
+    }
 
 
 def main() -> None:
@@ -108,8 +151,13 @@ def main() -> None:
         load_rows(args.directory / "assignments.json"),
         load_rows(args.directory / "grants.json"),
         load_rows(args.directory / "sites.json"),
+        load_rows(args.directory / "fields.json"),
+        load_rows(args.directory / "system.json"),
     )
-    print(json.dumps(review(evidence), indent=2))
+    report = review(evidence)
+    for key in ("field_grant_objects", "observed_broad_system_grants", "additional_review_gaps"):
+        report[key] = evidence[key]
+    print(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":
