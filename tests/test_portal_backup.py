@@ -1,10 +1,11 @@
 """Tests for private metadata archive checks."""
 
+import json
 from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
-from scripts.portal_backup import inspect_archive
+from scripts.portal_backup import inspect_archive, verify_backup
 from scripts.portal_prepare import ROOT
 
 
@@ -33,3 +34,15 @@ def test_invalid_backup(tmp_path: Path, mode: str) -> None:
     make_zip(path, unsafe=mode == "unsafe", omit_site=mode == "missing_site")
     with pytest.raises(ValueError):
         inspect_archive(path)
+
+
+def test_verify_retained_backup(tmp_path: Path) -> None:
+    path = tmp_path / "backup.zip"
+    make_zip(path)
+    report = inspect_archive(path)
+    (tmp_path / "backup-integrity.json").write_text(json.dumps(report))
+    assert verify_backup(tmp_path) == path
+    report["sha256"] = "0" * 64
+    (tmp_path / "backup-integrity.json").write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="mismatch"):
+        verify_backup(tmp_path)

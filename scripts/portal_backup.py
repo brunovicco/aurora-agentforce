@@ -71,9 +71,7 @@ def inspect_archive(path: Path) -> dict[str, object]:
             name.startswith(bundle + "routes/") and name.endswith(".json") for name in names
         ):
             raise ValueError("Missing experience routes")
-        if not any(
-            name.startswith(bundle + "views/") and name.endswith(".json") for name in names
-        ):
+        if not any(name.startswith(bundle + "views/") and name.endswith(".json") for name in names):
             raise ValueError("Missing experience views")
     return {
         "archive": path.name,
@@ -84,10 +82,26 @@ def inspect_archive(path: Path) -> dict[str, object]:
     }
 
 
+def verify_backup(directory: Path) -> Path:
+    """Check the retained archive against the original integrity report."""
+    directory = directory.resolve()
+    if directory.is_relative_to(Path(__file__).resolve().parents[1]):
+        raise ValueError("Backup must remain outside repository")
+    report = json.loads((directory / "backup-integrity.json").read_text())
+    archives = list(directory.glob("*.zip"))
+    if len(archives) != 1 or inspect_archive(archives[0]) != report:
+        raise ValueError("Backup integrity report mismatch")
+    return archives[0]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("directory", type=Path)
+    parser.add_argument("--verify", action="store_true")
     args = parser.parse_args()
+    if args.verify:
+        print(verify_backup(args.directory))
+        return
     directory = args.directory.resolve()
     repo = Path(__file__).resolve().parents[1]
     if directory.is_relative_to(repo):

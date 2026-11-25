@@ -23,3 +23,9 @@ Only after both dry-runs pass, compare current metadata with the candidate and r
 ## Rollback
 
 If change or preview fails, stop further changes. Verify original ZIP SHA-256 and validate restoration again; redeploy only after reviewing the exact org, scope and current status. Restore publication state separately if needed and repeat login and access checks. Metadata restoration cannot undo unrelated business writes or guarantee exact restoration of runtime state.
+
+## Backup evidence
+
+Revision `f66f408`: original portal Metadata API v68.0 retrieve succeeded in 9.86 seconds; all three requested components present and archive checks succeeded. The ZIP and SHA-256 report remain private with the operator. No deployment performed. CI: 204 tests passed, configured coverage 95.56%, Mypy clean, Bandit no findings; format-only failure corrected in the next revision.
+
+Run `bash scripts/sf-validate-portal-restore.sh aurora-dev /private/backup-directory` to recheck the retained ZIP against its original integrity report and submit only a dry-run. This report is not a signature, and the operator must retain the original hash separately. No restoration or publication occurs.
