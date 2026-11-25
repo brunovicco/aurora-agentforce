@@ -49,3 +49,11 @@ Run `bash scripts/sf-validate-portal-scope.sh aurora-dev /private/original-backu
 ## First scoped dry-run evidence
 
 Revision `ea34756`: fresh retrieve succeeded (9.40 seconds); payload matched original backup and candidate scope matched. The ExperienceBundle-only dry-run failed because the package generator omitted the sibling `experiences/Aurora_Customer_Portal1.site-meta.xml` descriptor. The next revision includes that existing descriptor, checks it bytewise against the retained backup, and tests exact package inventory. No permanent deployment occurred. Retry the scoped validation; do not reuse the earlier incomplete package.
+
+## Scoped dry-run success evidence
+
+Revision `9521a988db9fb0d1fa04e86610011bed07fe2bc2`: fresh retrieve succeeded (6.69 seconds), all three component payloads matched the original backup, three intended changes and no unexpected changes, sibling descriptor matched the backup. ExperienceBundle-only dry-run succeeded (1/1, 15.46 seconds, API 68.0), tests and source tracking skipped. All three GitHub Actions workflows passed. The approved candidate digest was `acecdd84db26ddf80aa1d9c3d16cfb5cfe88faf13a1769373f114a1899c46baf`. No deployment or publication performed.
+
+## Approved-package preflight
+
+Before any authorized deployment, keep concurrent Builder changes frozen, capture published status and verify the legacy agent is disconnected. Run `bash scripts/sf-check-portal-deploy.sh aurora-dev /private/original-backup-directory /private/approved-candidate-directory APPROVED_SHA256`. This read-only preflight verifies exact candidate file inventory and bytes against the repository, checks the previously observed package digest, retrieves a fresh copy of the original three components, and checks no drift. It never deploys. If any check fails, stop. Only deploy the exact reviewed ExperienceBundle package with a separately approved command; inspect actual publication behavior and do not manually publish until reviewed.

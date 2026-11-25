@@ -88,6 +88,29 @@ def prepare(original: Path, fresh: Path, output: Path) -> dict[str, object]:
     }
 
 
+def verify_candidate(candidate: Path, expected_digest: str) -> None:
+    """Ensure an approved package contains only the exact repository candidate."""
+    if not candidate.is_dir() or candidate.is_symlink():
+        raise ValueError("Invalid candidate directory")
+    if candidate.resolve().is_relative_to(ROOT.parents[1]):
+        raise ValueError("Candidate must remain outside repository")
+    expected = {
+        path.relative_to(ROOT): path.read_bytes()
+        for path in (ROOT / BUNDLE).rglob("*")
+        if path.is_file()
+    }
+    expected[DESCRIPTOR] = (ROOT / DESCRIPTOR).read_bytes()
+    expected[Path("package.xml")] = MANIFEST.encode()
+    actual = {}
+    for path in candidate.rglob("*"):
+        if path.is_symlink():
+            raise ValueError("Candidate symbolic link")
+        if path.is_file():
+            actual[path.relative_to(candidate)] = path.read_bytes()
+    if actual != expected or package_digest(candidate) != expected_digest:
+        raise ValueError("Approved candidate inventory or digest mismatch")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("original", type=Path)

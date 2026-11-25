@@ -3,8 +3,16 @@
 from pathlib import Path
 from zipfile import ZipFile
 
+import pytest
 from scripts.portal_prepare import BUNDLE, ROOT
-from scripts.portal_scope import DESCRIPTOR, MANIFEST, build_package, package_digest, payload
+from scripts.portal_scope import (
+    DESCRIPTOR,
+    MANIFEST,
+    build_package,
+    package_digest,
+    payload,
+    verify_candidate,
+)
 
 
 def test_json_semantic_comparison(tmp_path: Path) -> None:
@@ -37,3 +45,15 @@ def test_scoped_package_includes_descriptor(tmp_path: Path) -> None:
     expected = {p.relative_to(ROOT) for p in (ROOT / BUNDLE).rglob("*") if p.is_file()}
     actual = {p.relative_to(output) for p in output.rglob("*") if p.is_file()}
     assert actual == expected | {DESCRIPTOR, Path("package.xml")}
+
+
+def test_verify_approved_candidate(tmp_path: Path) -> None:
+    output = tmp_path / "metadata"
+    build_package(ROOT, output)
+    digest = package_digest(output)
+    verify_candidate(output, digest)
+    with pytest.raises(ValueError, match="mismatch"):
+        verify_candidate(output, "0" * 64)
+    (output / "extra.xml").write_text("extra")
+    with pytest.raises(ValueError, match="mismatch"):
+        verify_candidate(output, package_digest(output))
