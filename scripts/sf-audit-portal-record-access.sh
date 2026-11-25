@@ -25,7 +25,14 @@ for label, (account, _, _) in EXPECTED.items():
         raise SystemExit("Invalid Salesforce record ID")
     print(label, *ids, sep="\t")
 PY
-accounts=$(awk -F '\t' '{printf "%s\047%s\047", NR==1?"":",",$3}' "$private_dir/ids.tsv")
+accounts=$(uv run python - "$private_dir/ids.tsv" <<'PY'
+import sys
+from pathlib import Path
+
+rows = Path(sys.argv[1]).read_text().splitlines()
+print(",".join("'" + row.split("\t")[2] + "'" for row in rows))
+PY
+)
 cd "$root/salesforce"
 while IFS=$'\t' read -r actor user_id account_id; do
   sf data query --target-org "$1" --json --query "SELECT RecordId, HasReadAccess, HasEditAccess FROM UserRecordAccess WHERE UserId = '$user_id' AND RecordId IN ($accounts)" > "$private_dir/$actor.json"
