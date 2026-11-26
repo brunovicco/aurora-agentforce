@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "suite": "authenticated-agentforce-identity",
+  "scenarios": [
+    {
+      "id": "I01",
+      "name": "Alice authenticated execution",
+      "acceptance": "Verify Alice execution identity and conversation binding."
+    },
+    {
+      "id": "I02",
+      "name": "Bob authenticated execution",
+      "acceptance": "Verify Bob execution identity and conversation binding."
+    },
+    {
+      "id": "I03",
+      "name": "Guest access",
+      "acceptance": "Reject unauthenticated diagnostic execution."
+    },
+    {
+      "id": "I04",
+      "name": "Identity substitution",
+      "acceptance": "Preserve platform identity despite injected identifiers."
+    },
+    {
+      "id": "I05",
+      "name": "Logout",
+      "acceptance": "Reject new authorized execution after logout."
+    },
+    {
+      "id": "I06",
+      "name": "Session expiry",
+      "acceptance": "Require valid renewal or reauthentication."
+    },
+    {
+      "id": "I07",
+      "name": "Missing trusted context",
+      "acceptance": "Fail closed when required authorization context is absent."
+    },
+    {
+      "id": "I08",
+      "name": "Shared agent identity",
+      "acceptance": "Do not accept the agent user as a customer identity."
+    },
+    {
+      "id": "I09",
+      "name": "Wrong channel",
+      "acceptance": "Reject context originating from an unauthorized channel."
+    },
+    {
+      "id": "I10",
+      "name": "Execution observability",
+      "acceptance": "Correlate action execution, user and conversation evidence."
+    }
+  ]
+}

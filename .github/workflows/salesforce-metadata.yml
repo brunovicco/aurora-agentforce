@@ -42,6 +42,7 @@ jobs:
               '.queue',
               '.queueroutingconfig',
               '.permissionset',
+              '.flow',
           }
           xml_files = sorted(
               path for path in Path('salesforce').rglob('*')

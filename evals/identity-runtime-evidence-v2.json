@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-26",
+  "environment": "salesforce-developer-org",
+  "agent_version": 2,
+  "scenario": "I01",
+  "status": "PARTIAL_PASS",
+  "observations": {
+    "chat_available": true,
+    "diagnostic_agent_routing": true,
+    "messaging_sessions_found": 2,
+    "authenticated_identity": "Alice",
+    "observed_contact_binding": false,
+    "observed_account_binding": false,
+    "apex_logs_found": 4,
+    "probe_execution_observed": true,
+    "apex_log_user": "Alice",
+    "exception_type": "System.UnexpectedException",
+    "exception_message": "Current session unavailable",
+    "diagnostic_response": "Diagnostics unavailable.",
+    "direct_userinfo_verification": false,
+    "unique_conversation_binding_verified": false,
+    "authorization_boundary_verified": false
+  },
+  "remediation": {
+    "execution_probe_apex_tests_passed": 8,
+    "execution_probe_apex_tests_failed": 0,
+    "execution_probe_deployed": true,
+    "diagnostic_apex_grants": 2,
+    "customer_permission_assignments": 2,
+    "unexpected_assignments": 0,
+    "object_permission_rows": 0,
+    "field_permission_rows": 0,
+    "agent_v3_validated": true,
+    "agent_v3_published": true,
+    "agent_v3_active": false,
+    "agent_v3_runtime_status": "NOT_RUN"
+  }
+}

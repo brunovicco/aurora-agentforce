@@ -23,7 +23,7 @@ operator-controlled operation.
 The Embedded Service Deployment and its generated site
 are environment-specific and are not included.
 
-## Validation evidence
+## Initial validation evidence (historical)
 
 Metadata API version: 68.0.
 
@@ -44,7 +44,7 @@ Previous revisions exposed two issues:
 Session retrieval was isolated behind an injectable
 provider to enable deterministic unit testing.
 
-## Messaging infrastructure
+## Initial messaging infrastructure (historical)
 
 - Authenticated Messaging Channel provisioned.
 - Channel inactive at last verification.
@@ -70,20 +70,75 @@ The probe:
 Native session retrieval can still fail in runtime.
 Mocked Apex tests do not establish platform behavior.
 
+## Runtime experiment — 2026-11-26
+
+Credential-based user verification was configured in the
+Messaging Channel and Experience Builder.
+
+The authenticated channel was activated and the isolated
+RoutingFlow was associated with the diagnostic agent.
+
+### Agent V2 baseline
+
+- Original Apex probe deployed: 9/9 tests passed.
+- Authenticated chat and diagnostic routing observed.
+- Two MessagingSessions associated with Alice.
+- Apex probe execution observed in a log attributed to Alice.
+- Native session retrieval failed with System.UnexpectedException:
+  Current session unavailable.
+- Direct UserInfo evidence and unique conversation binding
+  remain unverified.
+
+This demonstrates why execution identity and native session
+availability must be treated as separate controls.
+
+### Agent V3 remediation
+
+- Execution Identity Probe deployed: 8/8 tests passed.
+- No dependency on Auth.SessionManagement.
+- Runtime identity obtained from platform UserInfo.
+- Only boolean diagnostic outputs and log markers.
+- Both diagnostic classes granted to Alice and Bob through
+  the dedicated permission set.
+- No object or field permission rows in that permission set.
+- V3 validated and published, but inactive.
+- V2 remains active.
+
+### Reproducibility
+
+Additional isolated packages:
+
+- execution-probe
+- identity-probe-access
+- messaging-channel-flow-routing
+- identity-inbound/templates
+- identity-agent/templates
+
+The initial messaging-channel package is a historical
+baseline. Do not deploy both channel revisions together.
+
+Agent and Flow templates contain environment placeholders.
+Render them privately and validate before deployment.
+Never commit resolved usernames, org IDs, session tokens,
+raw logs or environment-specific backups.
+
+See:
+
+- evals/identity-runtime-scenarios.json
+- evals/identity-runtime-evidence-v2.json
+
 ## Remaining gates
 
-- [ ] Permanent deployment explicitly approved.
-- [ ] Credential-based user verification configured.
-- [ ] Isolated diagnostic agent created.
-- [ ] Trusted conversation context established.
-- [ ] Alice authenticated identity verified.
-- [ ] Bob authenticated identity verified.
-- [ ] Guest access denied.
-- [ ] Cross-customer substitution denied.
-- [ ] Logout and expiry behavior verified.
-- [ ] Missing session context evaluated.
-- [ ] Shared agent execution identity evaluated.
-- [ ] Wrong channel rejected.
+- [ ] Activate V3 with explicit operator approval.
+- [ ] Establish fresh diagnostic conversations.
+- [ ] Verify Alice and Bob execution identity.
+- [ ] Establish unique trusted conversation binding.
+- [ ] Verify guest denial and identity substitution resistance.
+- [ ] Verify logout, expiration and missing context.
+- [ ] Reject shared agent identity and wrong channels.
+- [ ] Validate deterministic authorization before exposing
+      any business action.
 
+The probe is diagnostic, not an authorization boundary.
 No business actions may be exposed until the trusted
 identity boundary is independently validated.
