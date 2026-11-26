@@ -127,11 +127,40 @@ See:
 - evals/identity-runtime-scenarios.json
 - evals/identity-runtime-evidence-v2.json
 
+## V3 runtime validation — 2026-11-26
+
+The diagnostic agent V3 was activated.
+
+Independent Apex logs confirmed successful execution of
+AuroraExecutionIdentityProbe under both synthetic customers.
+
+- Alice execution identity: verified.
+- Bob execution identity: verified.
+- Deterministic boolean checks: 6/6.
+- Distinct authenticated customer conversations: observed.
+- Fatal errors and exceptions: none in the two executions.
+- Shared agent execution: not observed in this sample.
+- Guest chat unavailable: observed through the portal UI.
+
+The initial marker parser failed to recognize the debug
+events. A subsequent inspection recovered both markers.
+
+The diagnostic gate passed. This is not proof of complete
+session binding, endpoint isolation or business authorization.
+
+Alice reused an existing conversation with a new
+MessagingSession. Bob used a new conversation.
+
+Contact and Account bindings were absent from the
+observed MessagingEndUser records.
+
+See evals/identity-runtime-evidence-v3.json.
+
 ## Remaining gates
 
-- [ ] Activate V3 with explicit operator approval.
+- [x] Activate V3 with explicit operator approval.
 - [ ] Establish fresh diagnostic conversations.
-- [ ] Verify Alice and Bob execution identity.
+- [x] Verify Alice and Bob execution identity.
 - [ ] Establish unique trusted conversation binding.
 - [ ] Verify guest denial and identity substitution resistance.
 - [ ] Verify logout, expiration and missing context.

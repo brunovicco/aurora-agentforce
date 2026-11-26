@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-26",
+  "agent_version": 3,
+  "environment": "salesforce-developer-org",
+  "observations": [
+    {
+      "actor": "Alice",
+      "log_status": "Success",
+      "probe_code_unit_started": true,
+      "values": {
+        "userIdPresent": true,
+        "notGuest": true,
+        "expectedPortalType": true
+      },
+      "fatal_error": false,
+      "exception": false
+    },
+    {
+      "actor": "Bob",
+      "log_status": "Success",
+      "probe_code_unit_started": true,
+      "values": {
+        "userIdPresent": true,
+        "notGuest": true,
+        "expectedPortalType": true
+      },
+      "fatal_error": false,
+      "exception": false
+    }
+  ],
+  "alice_execution_verified": true,
+  "bob_execution_verified": true,
+  "shared_agent_execution_observed": false,
+  "distinct_customer_conversations": true,
+  "guest_chat_unavailable_observed": true,
+  "guest_direct_endpoint_denial_verified": false,
+  "unique_action_conversation_binding_verified": false,
+  "business_authorization_verified": false,
+  "diagnostic_gate_passed": true,
+  "scenario_status": {
+    "I01": "PARTIAL_PASS",
+    "I02": "PARTIAL_PASS",
+    "I03": "PASS_UI_ONLY",
+    "I04": "NOT_RUN",
+    "I05": "NOT_RUN",
+    "I06": "NOT_RUN",
+    "I07": "NOT_RUN",
+    "I08": "NOT_RUN",
+    "I09": "NOT_RUN",
+    "I10": "PARTIAL_PASS"
+  }
+}
