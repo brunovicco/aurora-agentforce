@@ -140,9 +140,19 @@ The [phase 3 reference](salesforce/TRUSTED-CHANNEL.md) includes the Python
 resolver and transport, optional private broker with explicit scope policy,
 in-memory or SQLite lifecycle store, local rate limiting, minimal audit,
 and candidate internal Apex clients. No production channel authentication,
-Salesforce runtime binding, Named Credential setup or org validation is complete.
-Existing Agentforce actions and Flow are unchanged.
+Salesforce runtime binding or Named Credential setup is complete.
+Legacy Agentforce action definitions and Flow logic have not been migrated. The legacy Flow invocation is administratively restricted in the development org.
+
+### Verified action candidate
+
+The [phase 4 read facade](salesforce/VERIFIED-ACTIONS.md) exposes only business results or a generic unavailable outcome internally. No Agentforce action is activated.
+
+The phase 4 runtime composition requires an independent authenticated-session authorizer before any verified read; no native runtime authorizer is installed.
+
+The [development org runbook](salesforce/VERIFIED-READS-VALIDATION.md) records successful Salesforce development-org check-only validation (11 components, 20/20 Apex mock tests) on November 24, 2026. Authenticated channel acceptance is still NOT RUN; no verified action is activated.
 
 ## Customer portal (Experience Cloud)
 
-The [versioned portal baseline](salesforce/PORTAL-SETUP.md) includes sanitized metadata, org-specific rendering and integrity checks before a dry-run. Both the initial configuration and the revision with corrected UTF-8 filenames passed metadata validation (3/3) in the existing Developer Edition. Customer authentication, account isolation and Agentforce integration remain unverified. Do not attach the legacy agent to the portal.
+The [versioned portal baseline](salesforce/PORTAL-SETUP.md) includes sanitized metadata, org-specific rendering and integrity checks before a dry-run. Both the initial configuration and the revision with corrected UTF-8 filenames passed metadata validation (3/3) in the existing Developer Edition. The scoped ExperienceBundle was deployed and published in the dedicated development org. Manual tests confirmed both synthetic customer identities and denied cross-account reads in the tested direct record routes. Effective CRUD/FLS, direct Case creation, logout and Agentforce integration remain unverified. See [runtime evaluation](salesforce/PORTAL-RUNTIME-EVALUATION.md). Do not attach the legacy agent to the portal.
+
+Post-remediation evidence includes 178 confirmed field permission revocations and 15/15 operator-reported manual portal checks. These checks do not constitute completion of the versioned runtime benchmark. Authenticated Agentforce integration remains unauthorized.

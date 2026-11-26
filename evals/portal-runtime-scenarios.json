@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "P01",
+      "actor": "guest",
+      "operation": "business_route",
+      "expected": "denied"
+    },
+    {
+      "id": "P02",
+      "actor": "customer_a",
+      "operation": "login",
+      "expected": "identity_matched"
+    },
+    {
+      "id": "P03",
+      "actor": "customer_b",
+      "operation": "login",
+      "expected": "identity_matched"
+    },
+    {
+      "id": "P04",
+      "actor": "customer_a",
+      "operation": "own_account",
+      "expected": "own_read_only"
+    },
+    {
+      "id": "P05",
+      "actor": "customer_b",
+      "operation": "own_account",
+      "expected": "own_read_only"
+    },
+    {
+      "id": "P06",
+      "actor": "customer_a",
+      "operation": "other_account",
+      "expected": "denied"
+    },
+    {
+      "id": "P07",
+      "actor": "customer_b",
+      "operation": "other_account",
+      "expected": "denied"
+    },
+    {
+      "id": "P08",
+      "actor": "customer_a",
+      "operation": "direct_case_create",
+      "expected": "denied"
+    },
+    {
+      "id": "P09",
+      "actor": "customer_b",
+      "operation": "direct_case_create",
+      "expected": "denied"
+    },
+    {
+      "id": "P10",
+      "actor": "customer_a",
+      "operation": "approval_record",
+      "expected": "denied"
+    },
+    {
+      "id": "P11",
+      "actor": "customer_b",
+      "operation": "approval_record",
+      "expected": "denied"
+    },
+    {
+      "id": "P12",
+      "actor": "customer_a",
+      "operation": "arbitrary_business_flow",
+      "expected": "denied"
+    },
+    {
+      "id": "P13",
+      "actor": "customer_b",
+      "operation": "arbitrary_business_flow",
+      "expected": "denied"
+    },
+    {
+      "id": "P14",
+      "actor": "customer_a",
+      "operation": "post_logout_business_route",
+      "expected": "denied"
+    },
+    {
+      "id": "P15",
+      "actor": "customer_b",
+      "operation": "post_logout_business_route",
+      "expected": "denied"
+    }
+  ]
+}

@@ -140,9 +140,18 @@ A [referência da fase 3](salesforce/TRUSTED-CHANNEL.md) inclui resolvedor e
 transporte Python, broker privado opcional com política explícita de escopo,
 armazenamento em memória ou SQLite, rate limiting local, auditoria mínima e
 clientes Apex internos candidatos. Autenticação real do canal, vínculo de
-execução Salesforce, configuração de credenciais e validação na org permanecem
-pendentes. As ações Agentforce e o Flow existentes continuam inalterados.
+execução Salesforce e configuração de credenciais permanecem pendentes. As definições das ações legadas e a lógica do Flow ainda não foram migradas. A execução do Flow legado está administrativamente restrita na org de desenvolvimento.
+
+### Ações verificadas candidatas
+
+A [fachada de leitura da fase 4](salesforce/VERIFIED-ACTIONS.md) devolve apenas dados de negócio ou indisponibilidade genérica. Nenhuma ação Agentforce foi ativada.
+
+A composição de runtime da fase 4 exige um autorizador independente de sessão autenticada antes de cada leitura; não há autorizador nativo instalado.
+
+O [roteiro de validação na org](salesforce/VERIFIED-READS-VALIDATION.md) registra a validação sem implantação na org de desenvolvimento em 24/11/2026: 11 componentes e 20/20 testes Apex com mocks aprovados. A aceitação do canal autenticado ainda não foi executada; nenhuma ação verificada foi ativada.
 
 ## Portal de clientes (Experience Cloud)
 
-O [baseline versionado do portal](salesforce/PORTAL-SETUP.md) inclui metadados sanitizados, renderização específica da org e validação de integridade antes do dry-run. Tanto a configuração inicial quanto a revisão com nomes UTF-8 corrigidos passaram na validação de metadados (3/3) na Developer Edition existente. Autenticação do cliente, isolamento entre contas e integração Agentforce não foram comprovados. Não conecte o agente legado ao portal.
+O [baseline versionado do portal](salesforce/PORTAL-SETUP.md) inclui metadados sanitizados, renderização específica da org e validação de integridade antes do dry-run. Tanto a configuração inicial quanto a revisão com nomes UTF-8 corrigidos passaram na validação de metadados (3/3) na Developer Edition existente. O ExperienceBundle de escopo restrito foi implantado e publicado na org dedicada. Testes manuais confirmaram as duas identidades sintéticas e o bloqueio de leitura cruzada nas rotas de registro testadas. CRUD/FLS efetivos, criação direta de Cases, logout e integração Agentforce permanecem sem comprovação. Consulte a [avaliação em runtime](salesforce/PORTAL-RUNTIME-EVALUATION.md). Não conecte o agente legado ao portal.
+
+As evidências pós-remediação incluem 178 revogações de permissões de campo confirmadas e 15/15 testes manuais reportados pelo operador. Esses testes não representam a conclusão do benchmark versionado. A integração autenticada com Agentforce permanece sem autorização.

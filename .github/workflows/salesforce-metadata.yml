@@ -36,7 +36,19 @@ jobs:
           project = json.loads(Path('salesforce/sfdx-project.json').read_text())
           assert project['sourceApiVersion'] == '68.0'
           assert project['packageDirectories'][0]['path'] == 'force-app'
-          xml_files = list(Path('salesforce').rglob('*.xml'))
+          metadata_suffixes = {
+              '.xml',
+              '.messagingchannel',
+              '.queue',
+              '.queueroutingconfig',
+              '.permissionset',
+              '.flow',
+          }
+          xml_files = sorted(
+              path for path in Path('salesforce').rglob('*')
+              if path.is_file()
+              and path.suffix.lower() in metadata_suffixes
+          )
           assert xml_files, 'No Salesforce metadata files found'
           for item in xml_files:
               ET.parse(item, forbid_dtd=True, forbid_entities=True, forbid_external=True)

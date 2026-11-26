@@ -142,6 +142,14 @@ class access, production identity integration or action/Flow migration is
 included. Do not expose the broker or activate candidate actions before
 validating the authenticated runtime binding in an isolated org.
 
+See [VERIFIED-ACTIONS.md](VERIFIED-ACTIONS.md) for the candidate read facade and activation gate. Add AuroraVerifiedReadFacadeTest to isolated Apex validation; do not activate the facade before authenticated runtime verification.
+
+Include AuroraAuthenticatedReadRuntimeTest in isolated validation. Its injected session authorizer is not an implementation of Salesforce AuthSession verification.
+
+Use [VERIFIED-READS-VALIDATION.md](VERIFIED-READS-VALIDATION.md) for the complete check-only command and runtime acceptance gate. On 2026-11-24 the candidate manifest passed development-org dry-run validation (11 components, 20 Apex mock tests, zero failures). Authenticated runtime acceptance remains NOT RUN.
+
 ## Experience Cloud customer portal
 
-See [portal setup and validation](PORTAL-SETUP.md) for the sanitized baseline and dry-run-only workflow. The portal is separate from the verified-action candidate. The corrected UTF-8 revision passed the metadata dry-run (3/3, API 68.0). No runtime authorization or fresh-org portability is established by metadata validation.
+See [portal setup and validation](PORTAL-SETUP.md) for the sanitized baseline and dry-run-only workflow. The portal is separate from the verified-action candidate. The corrected UTF-8 revision passed the metadata dry-run (3/3, API 68.0). Metadata validation alone establishes neither runtime authorization nor fresh-org portability. Subsequent scoped deployment and publication enabled both synthetic customer logins; manual direct Account checks denied cross-customer reads in the tested sessions. See [runtime evidence and pending gates](PORTAL-RUNTIME-EVALUATION.md).
+
+The portal hardening evidence is documented in [PORTAL-RUNTIME-EVALUATION.md](PORTAL-RUNTIME-EVALUATION.md). Keep legacy live actions disconnected from the portal. Do not run write probes or activate verified actions without satisfying their separate security gates.

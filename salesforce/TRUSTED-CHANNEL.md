@@ -1,8 +1,9 @@
 # Trusted channel adapter — phase 3 reference implementation
 
 **Status:** offline Python reference and candidate internal Apex classes. No
-authenticated Salesforce channel, production deployment, or Apex compilation
-and execution in an org has been verified for this phase. Existing Agent Script
+authenticated Salesforce channel or production deployment has been verified.
+The candidate Apex classes passed compilation and mock tests in a development
+org during the phase 4 check-only validation. Existing Agent Script
 and Case Flow still use the isolated legacy fixed-customer integration.
 
 ## Trust boundaries
@@ -77,15 +78,13 @@ Tokens are bearer credentials and can be replayed by a party possessing both
 required credentials until expiry or revocation. Revocation does not cancel
 already admitted requests. There is no proof-of-possession or key rotation.
 
-## Isolated Salesforce validation (not run)
+## Isolated Salesforce validation (passed check-only on 2026-11-24)
 
 ```bash
-cd salesforce
-sf project deploy validate --manifest manifest/aurora-verified-client.xml \
-  --target-org aurora-dev --test-level RunSpecifiedTests \
-  --tests AuroraVerifiedOrdersClientTest --tests AuroraTrustedContextTest \
-  --tests AuroraBrokerBindingResolverTest
+bash scripts/sf-validate-verified-reads.sh aurora-dev
 ```
+
+Run from the repository root. See [the development org acceptance runbook](VERIFIED-READS-VALIDATION.md).
 
 Verify supported API version and CLI options in the target org. Mock tests
 cannot prove real Named Credential injection, customer authentication or
