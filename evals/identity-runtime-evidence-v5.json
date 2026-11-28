@@ -1,0 +1,61 @@
+{
+  "api_version": "68.0",
+  "environment": "synthetic Salesforce lab",
+  "cross_customer_runtime_isolation_verified": false,
+  "trusted_binding_verified": false,
+  "business_authorization_verified": false,
+  "agent_version": 5,
+  "access_mode": "SYSTEM_MODE",
+  "sharing_mode": "with sharing",
+  "apex_tests_passed": 17,
+  "apex_coverage_percent": 94.83,
+  "logs_found": 5,
+  "download_failures": 0,
+  "observations": [
+    {
+      "actor": "Alice",
+      "log_status": "Success",
+      "marker_count": 1,
+      "markers": [
+        {
+          "consistent": false,
+          "outcome": "NO_MATCH"
+        }
+      ],
+      "fatal_error": false,
+      "log_truncated": false
+    },
+    {
+      "actor": "Bob",
+      "log_status": "Success",
+      "marker_count": 1,
+      "markers": [
+        {
+          "consistent": false,
+          "outcome": "NO_MATCH"
+        }
+      ],
+      "fatal_error": false,
+      "log_truncated": false
+    }
+  ],
+  "record_visibility_audit": [
+    {
+      "actor": "Alice",
+      "candidate_count": 5,
+      "own_read_access_denied": 5,
+      "cross_customer_read_access_denied": 5,
+      "agent_read_access_denied": 5,
+      "current_admin_matches": 1
+    },
+    {
+      "actor": "Bob",
+      "candidate_count": 5,
+      "own_read_access_denied": 5,
+      "cross_customer_read_access_denied": 5,
+      "agent_read_access_denied": 5,
+      "current_admin_matches": 0
+    }
+  ],
+  "historical_record_visibility_verified": false
+}

@@ -1,0 +1,33 @@
+{
+  "api_version": "68.0",
+  "environment": "synthetic Salesforce lab",
+  "cross_customer_runtime_isolation_verified": false,
+  "trusted_binding_verified": false,
+  "business_authorization_verified": false,
+  "agent_version": 4,
+  "access_mode": "USER_MODE",
+  "sharing_mode": "with sharing",
+  "apex_tests_passed": 25,
+  "apex_coverage_percent": 99.02,
+  "observations": [
+    {
+      "actor": "Alice",
+      "ui_result": false,
+      "apex_evidence": "NOT_CONSOLIDATED"
+    },
+    {
+      "actor": "Bob",
+      "ui_result": false,
+      "apex_outcome": "SESSION_LOOKUP_ERROR",
+      "exception_type": "System.QueryException",
+      "exception_category": "unsupported_object"
+    }
+  ],
+  "v4_observation_provenance": "Operator-reported historical experiment; not independently re-parsed by this exporter.",
+  "candidate_scoped_query_admin_controls": {
+    "controls_total": 8,
+    "passed": 8,
+    "failed": 0,
+    "not_run": 0
+  }
+}

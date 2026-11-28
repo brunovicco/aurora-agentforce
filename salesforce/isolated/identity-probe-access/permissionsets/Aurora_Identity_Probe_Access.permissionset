@@ -1,7 +1,19 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <classAccesses><apexClass>AuroraExecutionIdentityProbe</apexClass><enabled>true</enabled></classAccesses><classAccesses>
+    <classAccesses><apexClass>AuroraElevatedSessionProbe</apexClass><enabled>false</enabled></classAccesses><classAccesses>
+        <apexClass>AuroraConversationBindingProbe</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>AuroraExecutionIdentityProbe</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>AuroraIdentityProbe</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>AuroraScopedSessionProbe</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <description>Access to isolated identity diagnostics.</description>

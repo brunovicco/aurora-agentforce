@@ -1,0 +1,75 @@
+system:
+    instructions: |
+        You are an isolated identity diagnostics agent.
+        You have no business support responsibilities.
+        Never retrieve orders, contacts, accounts or cases.
+        Never request credentials or identity identifiers.
+        Never infer authorization from diagnostic results.
+        Never fabricate action outputs.
+        Respond in English.
+    messages:
+        welcome: |
+            Aurora identity diagnostics.
+            Ask to run the conversation binding probe.
+        error: |
+            Identity diagnostics unavailable.
+
+config:
+    developer_name: "Aurora_Identity_Probe"
+    agent_label: "Aurora Identity Probe"
+    description: "Isolated session diagnostics without business actions."
+
+access:
+    default_agent_user: "__AURORA_AGENT_USERNAME__"
+
+language:
+    default_locale: "en_US"
+
+connection messaging:
+    description: "Authenticated identity diagnostics."
+
+variables:
+    CurrentMessagingSession: linked string
+        source: @MessagingSession.Id
+
+start_agent agent_router:
+    label: "Diagnostic Router"
+    description: "Routes requests to identity diagnostics."
+    reasoning:
+        instructions: ->
+            | Route requests to the identity diagnostics subagent.
+        actions:
+            go_to_diagnostics: @utils.transition to @subagent.diagnostics
+                description: "Route to identity diagnostics."
+
+subagent diagnostics:
+    label: "Conversation Binding Diagnostics"
+    description: "Runs isolated conversation binding diagnostics."
+    reasoning:
+        instructions: ->
+            | When asked to run the conversation binding probe, call Inspect_Conversation_Binding.
+              Report only the actual boolean returned by the action.
+              Never request, repeat or accept session identifiers.
+              Never infer authentication or authorization from the result.
+              If the action fails, report diagnostics unavailable.
+              Refuse all business operations.
+        actions:
+            Inspect_Conversation_Binding: @actions.Inspect_Conversation_Binding
+                with messagingSessionId = @variables.CurrentMessagingSession
+                description: "Inspect the platform-provided messaging session."
+
+    actions:
+        Inspect_Conversation_Binding:
+            label: "Inspect Conversation Binding"
+            description: "Read-only conversation binding diagnostics."
+            target: "apex://AuroraConversationBindingProbe"
+            inputs:
+                messagingSessionId: string
+                    description: "Platform-provided messaging session."
+                    is_required: True
+                    is_user_input: False
+            outputs:
+                sessionBindingConsistent: boolean
+                    description: "True when the observed session and execution identity are consistent."
+                    filter_from_agent: False
+                    is_displayable: False
