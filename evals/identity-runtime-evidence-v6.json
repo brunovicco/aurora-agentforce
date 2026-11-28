@@ -1,0 +1,63 @@
+{
+  "api_version": "68.0",
+  "environment": "synthetic Salesforce lab",
+  "cross_customer_runtime_isolation_verified": false,
+  "trusted_binding_verified": false,
+  "business_authorization_verified": false,
+  "agent_version": 6,
+  "baseline_access_mode": "SYSTEM_MODE",
+  "baseline_sharing": "with sharing",
+  "elevated_access_mode": "SYSTEM_MODE",
+  "elevated_sharing": "without sharing",
+  "apex_tests_passed": 24,
+  "apex_coverage_percent": 94.68,
+  "logs_found": 5,
+  "download_failures": 0,
+  "observations": [
+    {
+      "actor": "Bob",
+      "log_status": "Success",
+      "marker_count": 1,
+      "markers": [
+        {
+          "consistent": true,
+          "outcome": "CONSISTENT",
+          "baseline": "NO_MATCH",
+          "elevated": "CONSISTENT"
+        }
+      ],
+      "fatal_error": false,
+      "log_truncated": false,
+      "sharing_differential_confirmed": true
+    },
+    {
+      "actor": "Alice",
+      "log_status": "Success",
+      "marker_count": 1,
+      "markers": [
+        {
+          "consistent": true,
+          "outcome": "CONSISTENT",
+          "baseline": "NO_MATCH",
+          "elevated": "CONSISTENT"
+        }
+      ],
+      "fatal_error": false,
+      "log_truncated": false,
+      "sharing_differential_confirmed": true
+    }
+  ],
+  "sharing_differential_confirmed": true,
+  "runtime_elevation_verified": true,
+  "rollback": {
+    "rollback_verified": true,
+    "active_agent_version": 5,
+    "v6_inactive": true,
+    "diagnostic_elevated_grant_revoked": true,
+    "administrative_baseline_preserved": true,
+    "remaining_elevated_explicit_grants": 1,
+    "remaining_diagnostic_elevated_grants": 0,
+    "unexpected_global_grants": 0,
+    "effective_permissions_verified": false
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "component": "TrustedSessionAuthorizer",
+  "status": "NOT_IMPLEMENTED",
+  "cases": [
+    {
+      "id": "TSA01",
+      "scenario": "Own valid session - Alice",
+      "expected": "ALLOW",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA02",
+      "scenario": "Own valid session - Bob",
+      "expected": "ALLOW",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA03",
+      "scenario": "Alice references Bob session",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA04",
+      "scenario": "Bob references Alice session",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA05",
+      "scenario": "Guest execution",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA06",
+      "scenario": "Shared agent identity",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA07",
+      "scenario": "Ended session",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA08",
+      "scenario": "Unexpected channel",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA09",
+      "scenario": "Stale session of same customer",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA10",
+      "scenario": "Manipulated reference",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA11",
+      "scenario": "Logged-out customer",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA12",
+      "scenario": "Expired authentication",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA13",
+      "scenario": "Revoked identity",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA14",
+      "scenario": "Privileged lookup failure",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA15",
+      "scenario": "Prompt injection identity override",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "TSA16",
+      "scenario": "Missing trusted context",
+      "expected": "DENY",
+      "runtime_status": "NOT_RUN"
+    }
+  ]
+}
